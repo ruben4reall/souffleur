@@ -1,20 +1,6 @@
-// Souffleur's website: a live clock in the menu bar, the reading reel, the spotlight, the stage light chips and the
-// page counter. Everything still reads without it.
+// Souffleur's website: the filmed take, the spotlight, the stage light chips and the page counter. Everything still
+// reads without it.
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-(() => {
-  // The menu bar's clock, like the Mac's: "Sun Sep 27 9:41 PM".
-  const clock = document.querySelector('[data-clock]');
-  if (!clock) return;
-  const day = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  const time = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
-  const tick = () => {
-    const now = new Date();
-    clock.textContent = `${day.format(now).replace(',', '')} ${time.format(now)}`;
-  };
-  tick();
-  setInterval(tick, 15000);
-})();
 
 // Runs `step` every `interval` while `element` is on screen and the page is visible. Returns a function that stops it
 // for good.

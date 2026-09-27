@@ -27,37 +27,33 @@
 <body>
   <a class="skip" href="#main">Skip to content</a>
 
-  <header class="menubar" id="top">
-    <nav class="menubar-side" aria-label="Souffleur">
-      <svg class="menubar-apple" viewBox="0 0 13 16" aria-hidden="true"><path d="M10.6 8.5c0-1.9 1.6-2.8 1.6-2.9-.9-1.3-2.2-1.4-2.7-1.5-1.1-.1-2.2.7-2.8.7-.6 0-1.5-.7-2.4-.6C3.1 4.2 2 4.9 1.4 6c-1.3 2.2-.3 5.5.9 7.3.6.9 1.3 1.9 2.3 1.8.9 0 1.3-.6 2.4-.6 1.1 0 1.4.6 2.4.6 1 0 1.6-.9 2.2-1.8.7-1 1-2 1-2.1 0 0-1.9-.7-2-2.7Zm-1.8-5.6c.5-.6.8-1.4.7-2.3-.7 0-1.6.5-2.1 1.1-.5.5-.9 1.4-.8 2.2.8.1 1.6-.4 2.2-1Z" fill="currentColor"/></svg>
-      <a class="menubar-item menubar-name" href="#top">Souffleur</a>
-      <a class="menubar-item" href="#action">Voice</a>
-      <a class="menubar-item" href="#invisible">Invisible</a>
-      <a class="menubar-item" href="#features">Features</a>
-      <a class="menubar-item" href="#more">More</a>
-      <a class="menubar-item" href="#free">Free</a>
-      <a class="menubar-item" href="#faq">FAQ</a>
-    </nav>
-    <div class="menubar-side menubar-status" aria-hidden="true">
-      <svg viewBox="0 0 15 11"><path d="M7.5 10.8c-.1 0-.2 0-.3-.1l-1.6-1.6c-.2-.2-.2-.4 0-.6.4-.4 1.1-.8 1.9-.8s1.5.4 1.9.8c.2.2.2.4 0 .6l-1.6 1.6c-.1.1-.2.1-.3.1ZM3.7 7.3 2.6 6.2c-.2-.2-.2-.5 0-.7C3.9 4.2 5.6 3.4 7.5 3.4s3.6.8 4.9 2.1c.2.2.2.5 0 .7l-1.1 1.1c-.2.2-.5.2-.7 0-.8-.8-1.9-1.3-3.1-1.3S5.2 6.5 4.4 7.3c-.2.2-.5.2-.7 0ZM1 4.6 0 3.7c-.1-.2-.1-.5 0-.6C1.7 1.2 4.4 0 7.5 0s5.8 1.2 7.5 3.1c.1.2.1.4 0 .6l-.9.9c-.2.2-.5.2-.6 0C12 3 9.9 2 7.5 2S3 3 1.6 4.6c-.2.2-.5.2-.6 0Z" fill="currentColor"/></svg>
-      <svg viewBox="0 0 14 14"><circle cx="5.8" cy="5.8" r="4.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m9.3 9.3 3.6 3.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-      <svg viewBox="0 0 16 12"><rect x=".8" y=".8" width="14.4" height="4.4" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12.9" cy="3" r="1.3" fill="currentColor"/><rect x=".8" y="6.8" width="14.4" height="4.4" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="3.1" cy="9" r="1.3" fill="currentColor"/></svg>
-      <span class="menubar-clock" data-clock>Sun Sep 27 9:41 PM</span>
-    </div>
-    <div class="menubar-light" aria-hidden="true"></div>
-    <figure class="prompter" aria-label="Souffleur's prompter hanging from the notch at the top of the screen, lit from below in violet, its script rolling under the camera.">
-      <img class="prompter-frame" src="assets/notch/frame.webp" width="453" height="190" alt="">
-      <div class="prompter-text" aria-hidden="true">
-        <div class="prompter-track">
-          <img src="assets/notch/strip.webp" width="360" height="1062" alt="">
-          <img src="assets/notch/strip.webp" width="360" height="1062" alt="">
-        </div>
+  <header class="nav">
+    <nav class="nav-inner" aria-label="Souffleur">
+      <a class="nav-brand" href="#top">Souffleur</a>
+      <div class="nav-links">
+        <a href="#action">How it works</a>
+        <a href="#invisible">Invisible</a>
+        <a href="#features">Features</a>
+        <a href="#more">More</a>
+        <a href="#free">Free</a>
+        <a href="#faq">FAQ</a>
       </div>
-    </figure>
+      <a class="nav-cta" href="https://github.com/ruben4reall/souffleur/releases/latest/download/Souffleur.dmg">Download</a>
+    </nav>
   </header>
 
   <main id="main">
-    <section class="hero" aria-labelledby="hero-title">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero-light" aria-hidden="true"></div>
+      <figure class="prompter" aria-label="Souffleur's prompter hanging from the top of the screen, lit from below in violet, its script rolling under the camera.">
+        <img class="prompter-frame" src="assets/notch/frame.webp" width="453" height="190" alt="">
+        <div class="prompter-text" aria-hidden="true">
+          <div class="prompter-track">
+            <img src="assets/notch/strip.webp" width="360" height="1062" alt="">
+            <img src="assets/notch/strip.webp" width="360" height="1062" alt="">
+          </div>
+        </div>
+      </figure>
       <div class="hero-copy">
         <h1 class="title" id="hero-title"><span>Eyes on the lens.</span><span>Words on cue.</span></h1>
         <p class="hero-text">Souffleur is a free, open source teleprompter for the Mac. Your script rolls right under your camera while you speak, and stops the moment you do.</p>
