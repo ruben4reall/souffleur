@@ -15,7 +15,14 @@ public final class RemoteServer {
 
     private var listener: NWListener?
     private var subscribers: [ObjectIdentifier: NWConnection] = [:]
+    /// Connections still sending their request, with when they arrived: a slow or silent one is dropped.
+    private var waiting: [ObjectIdentifier: NWConnection] = [:]
+    private var heartbeat: Timer?
     private var lastSent: RemoteState?
+    /// A phone or two, and the page loading: more than this at once is not a remote.
+    static let maximumConnections = 16
+    static let maximumSubscribers = 4
+    static let requestTimeout: TimeInterval = 5
     private let queue = DispatchQueue(label: "ch.rubencatalao.souffleur.remote")
     static let preferredPorts: [UInt16] = [7575, 7576, 7577, 7578, 7579]
 
@@ -60,8 +67,12 @@ public final class RemoteServer {
     public func stop() {
         listener?.cancel()
         listener = nil
+        heartbeat?.invalidate()
+        heartbeat = nil
         subscribers.values.forEach { $0.cancel() }
         subscribers.removeAll()
+        waiting.values.forEach { $0.cancel() }
+        waiting.removeAll()
         isRunning = false
         port = nil
         onStatusChange?()
@@ -81,10 +92,26 @@ public final class RemoteServer {
         let current = state()
         guard current != lastSent, let json = try? JSONEncoder().encode(current) else { return }
         lastSent = current
-        let event = Data("data: ".utf8) + json + Data("\n\n".utf8)
-        for connection in subscribers.values {
-            connection.send(content: event, completion: .contentProcessed { _ in })
+        send(Data("data: ".utf8) + json + Data("\n\n".utf8))
+    }
+
+    /// Sends to every phone; one that cannot be reached any more is let go.
+    private func send(_ event: Data) {
+        for (id, connection) in subscribers {
+            connection.send(content: event, completion: .contentProcessed { [weak self] error in
+                guard error != nil else { return }
+                Task { @MainActor in self?.drop(id) }
+            })
         }
+    }
+
+    private func drop(_ id: ObjectIdentifier) {
+        subscribers.removeValue(forKey: id)?.cancel()
+        if subscribers.isEmpty {
+            heartbeat?.invalidate()
+            heartbeat = nil
+        }
+        onStatusChange?()
     }
 
     // MARK: Connections
@@ -95,8 +122,20 @@ public final class RemoteServer {
             connection.cancel()
             return
         }
+        guard waiting.count + subscribers.count < Self.maximumConnections else {
+            connection.cancel()
+            return
+        }
+        let id = ObjectIdentifier(connection)
+        waiting[id] = connection
         connection.start(queue: queue)
         receive(connection, buffer: Data())
+        // A request has a few seconds to arrive whole.
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.requestTimeout) { [weak self] in
+            MainActor.assumeIsolated {
+                self?.waiting.removeValue(forKey: id)?.cancel()
+            }
+        }
     }
 
     private nonisolated func receive(_ connection: NWConnection, buffer: Data) {
@@ -114,6 +153,7 @@ public final class RemoteServer {
     }
 
     private func respond(to request: HTTPRequest, on connection: NWConnection) {
+        guard waiting.removeValue(forKey: ObjectIdentifier(connection)) != nil else { return }
         guard RemoteToken.matches(Preferences.remoteToken, request.query["token"] ?? "") else {
             return send(connection, status: "403 Forbidden", type: "text/plain", body: Data("Scan the QR code in Souffleur's settings again.".utf8))
         }
@@ -134,10 +174,20 @@ public final class RemoteServer {
             let head = "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nCache-Control: no-store\r\nConnection: keep-alive\r\nX-Content-Type-Options: nosniff\r\n\r\n"
             connection.send(content: Data(head.utf8), completion: .contentProcessed { _ in })
             let id = ObjectIdentifier(connection)
+            // The oldest page goes when a new one opens past the limit: a phone reloading replaces itself.
+            if subscribers.count >= Self.maximumSubscribers, let oldest = subscribers.keys.first { drop(oldest) }
             subscribers[id] = connection
             connection.stateUpdateHandler = { [weak self] update in
-                if case .cancelled = update { Task { @MainActor in self?.subscribers[id] = nil; self?.onStatusChange?() } }
-                if case .failed = update { Task { @MainActor in self?.subscribers[id] = nil; self?.onStatusChange?() } }
+                switch update {
+                case .cancelled, .failed: Task { @MainActor in self?.drop(id) }
+                default: break
+                }
+            }
+            // A comment every 20 seconds keeps the stream open through the network and finds phones that left.
+            if heartbeat == nil {
+                heartbeat = Timer.scheduledTimer(withTimeInterval: 20, repeats: true) { [weak self] _ in
+                    MainActor.assumeIsolated { self?.send(Data(": ping\n\n".utf8)) }
+                }
             }
             lastSent = nil
             broadcast()
