@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 /// Souffleur's design tokens. The prompter is black like the notch it hangs from; its signature is stage light, a
-/// violet that runs into fuchsia, which marks what belongs to Souffleur: the glow around the notch, the next word,
+/// violet that runs into fuchsia, which marks what belongs to Souffleur: the light inside the notch, the next word,
 /// the voice, the main button.
 public enum Theme {
     /// Spotlight violet, the accent: buttons, selection, the level meter.
@@ -22,9 +22,11 @@ public enum Theme {
             : NSColor.white
     })
 
-    /// The stage light running around the notch, in the colour chosen in Settings (violet by default).
-    static func glowColors(_ light: StageLight) -> [CGColor] {
-        light.stops.map { CGColor(srgbRed: $0.0, green: $0.1, blue: $0.2, alpha: 1) }
+    /// The stage light inside the prompter and the halo beneath it, in the colour chosen in Settings (violet by
+    /// default).
+    static func lamp(_ light: StageLight) -> NSColor {
+        let (red, green, blue) = light.lamp
+        return NSColor(srgbRed: red, green: green, blue: blue, alpha: 1)
     }
 
     /// The next word and the prompter's figures, in a light tint of the stage light.

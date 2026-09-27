@@ -115,7 +115,18 @@ public enum StageLight: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// The stops of the turning gradient, in sRGB, from its start round to the same colour.
+    /// The colour of the light inside the prompter and of the halo beneath it, in sRGB: saturated, like a lamp.
+    var lamp: (Double, Double, Double) {
+        switch self {
+        case .violet, .off: (0.486, 0.231, 1)
+        case .ocean: (0.051, 0.435, 1)
+        case .ember: (1, 0.361, 0.114)
+        case .mint: (0.063, 0.796, 0.561)
+        case .gold: (1, 0.690, 0.176)
+        }
+    }
+
+    /// The stops of the gradient on the swatches and the level meter, in sRGB, from its start round to the same colour.
     var stops: [(Double, Double, Double)] {
         switch self {
         case .violet, .off: [(0.431, 0.357, 1), (0.643, 0.361, 1), (1, 0.353, 0.784), (1, 0.561, 0.690), (0.643, 0.361, 1), (0.431, 0.357, 1)]
@@ -191,9 +202,9 @@ public enum Preferences {
         Key.mode: ScrollMode.auto.rawValue,
         Key.placement: PrompterPlacement.notch.rawValue,
         Key.wordsPerMinute: Pace.conversational,
-        Key.fontSize: 19.0,
+        Key.fontSize: 21.0,
         Key.font: PrompterFont.system.rawValue,
-        Key.lineSpacing: 1.5,
+        Key.lineSpacing: 1.4,
         Key.theme: PrompterTheme.night.rawValue,
         Key.notchWidth: 360.0,
         Key.notchLines: 4.0,

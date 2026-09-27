@@ -168,7 +168,7 @@ final class ScriptTextView: NSView {
         let palette = Theme.palette(style.theme)
         let paragraph = NSMutableParagraphStyle()
         paragraph.lineHeightMultiple = style.spacing
-        paragraph.paragraphSpacing = style.size * 0.45
+        paragraph.paragraphSpacing = style.size * 0.8
         paragraph.alignment = style.centered ? .center : .natural
         let text = NSMutableAttributedString(string: script.display, attributes: [
             .font: style.bodyFont,

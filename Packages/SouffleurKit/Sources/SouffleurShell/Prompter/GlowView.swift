@@ -1,47 +1,28 @@
 import AppKit
 import SouffleurCore
 
-/// Stage light along the prompter's rim: a conic gradient of violet and fuchsia that turns slowly, seen through the
-/// outline twice, as a fine line and as a soft halo. The halo's mask is a stack of ever wider, ever fainter strokes,
-/// which falls off like a blur without any filter. The render server turns it; the app only changes how bright it is.
+/// Stage light, as on the classic notch prompter: a soft light rising from the middle of the prompter's lower edge,
+/// inside its outline. It is an ellipse centred on that edge that just reaches the top corners, strongest at its
+/// centre and gone at four fifths of its radius. The presentation morphs the outline with the prompter; the
+/// controller sets how bright it is.
 final class GlowView: NSView {
-    private let line = CALayer()
-    private let halo = CALayer()
-    private let lineGradient = CAGradientLayer()
-    private let haloGradient = CAGradientLayer()
-    private let lineRim = CAShapeLayer()
-    private let haloMask = CALayer()
-    /// Width and opacity of each stroke of the halo, widest and faintest first: close steps, so no band shows.
-    private static let haloStrokes: [(width: CGFloat, alpha: Float)] = (0..<12).map { step in
-        let t = CGFloat(step) / 11
-        return (width: 34 - 30 * t, alpha: Float(0.035 + 0.1 * t * t))
-    }
-    private let haloRims: [CAShapeLayer] = (0..<12).map { _ in CAShapeLayer() }
-    private var spinning = false
+    private let light = CAGradientLayer()
+    private let clip = CAShapeLayer()
+    /// Opacity of the light at the middle of the lower edge, at an intensity of 1.
+    static let strength: CGFloat = 0.5
+    /// A loud voice may push the intensity above 1, up to this.
+    static let ceiling: CGFloat = 1.3
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true
         layer?.opacity = 0
-        for (container, gradient) in [(halo, haloGradient), (line, lineGradient)] {
-            gradient.type = .conic
-            gradient.colors = Theme.glowColors(.violet)
-            gradient.startPoint = CGPoint(x: 0.5, y: 0.5)
-            gradient.endPoint = CGPoint(x: 0.5, y: 0)
-            container.addSublayer(gradient)
-            layer?.addSublayer(container)
-        }
-        for (rim, stroke) in zip(haloRims + [lineRim], Self.haloStrokes + [(2, 1)]) {
-            rim.fillColor = nil
-            rim.strokeColor = NSColor.black.cgColor
-            rim.lineWidth = stroke.width
-            rim.opacity = stroke.alpha
-            rim.lineJoin = .round
-            rim.lineCap = .round
-        }
-        haloRims.forEach { haloMask.addSublayer($0) }
-        halo.mask = haloMask
-        line.mask = lineRim
+        light.type = .radial
+        light.locations = [0, 0.8]
+        clip.fillColor = NSColor.black.cgColor
+        light.mask = clip
+        layer?.addSublayer(light)
+        setColors(.violet)
     }
 
     @available(*, unavailable)
@@ -49,50 +30,40 @@ final class GlowView: NSView {
 
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
 
-    /// Sizes the light around a centre, big enough to cover the view as it turns.
-    func configure(center: CGPoint) {
+    /// Aims the light at a body, in this view's coordinates: centred on its lower edge.
+    func configure(body: CGRect) {
+        guard bounds.width > 0, bounds.height > 0 else { return }
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        let side = hypot(bounds.width, bounds.height) * 1.2
-        for container in [line, halo] { container.frame = bounds }
-        haloMask.frame = bounds
-        for rim in haloRims + [lineRim] { rim.frame = bounds }
-        for gradient in [lineGradient, haloGradient] {
-            gradient.bounds = CGRect(x: 0, y: 0, width: side, height: side)
-            gradient.position = center
-        }
+        light.frame = bounds
+        clip.frame = bounds
+        let center = CGPoint(x: body.midX / bounds.width, y: body.minY / bounds.height)
+        // Farthest corner: the ellipse through the top corners has the body's half width and height times √2.
+        light.startPoint = center
+        light.endPoint = CGPoint(x: center.x + body.width / 2 * 2.squareRoot() / bounds.width,
+                                 y: center.y + body.height * 2.squareRoot() / bounds.height)
         CATransaction.commit()
     }
 
     /// The colour of the light, from Settings.
     func setColors(_ light: StageLight) {
-        let colors = Theme.glowColors(light)
+        let lamp = Theme.lamp(light)
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        lineGradient.colors = colors
-        haloGradient.colors = colors
+        self.light.colors = [lamp.withAlphaComponent(Self.strength * Self.ceiling).cgColor, lamp.withAlphaComponent(0).cgColor]
         CATransaction.commit()
         isOff = light == .off
         if isOff { setIntensity(0, duration: 0) }
     }
     private var isOff = false
 
-    /// The outlines the light runs along; the presentation morphs them with the prompter.
-    var rimLayers: [CAShapeLayer] { haloRims + [lineRim] }
+    /// The outline the light is seen through; the presentation morphs it with the prompter.
+    var outline: CAShapeLayer { clip }
 
-    /// How bright the light is, from 0 (off) to 1, eased.
+    /// How bright the light is: 0 is off, 1 the resting light, up to `ceiling` with a loud voice. Eased.
     func setIntensity(_ value: CGFloat, duration: CFTimeInterval = 0.25) {
         guard let layer else { return }
-        let target = isOff ? 0 : Float(max(0, min(1, value)))
-        if target > 0, !spinning { spin(true) }
-        CATransaction.begin()
-        if target == 0 {
-            CATransaction.setCompletionBlock { [weak self] in
-                MainActor.assumeIsolated {
-                    if self?.layer?.opacity == 0 { self?.spin(false) }
-                }
-            }
-        }
+        let target = isOff ? 0 : Float(max(0, min(Self.ceiling, value)) / Self.ceiling)
         let fade = CABasicAnimation(keyPath: "opacity")
         fade.fromValue = layer.presentation()?.opacity ?? layer.opacity
         fade.toValue = target
@@ -100,20 +71,5 @@ final class GlowView: NSView {
         fade.timingFunction = CAMediaTimingFunction(name: .easeOut)
         layer.opacity = target
         layer.add(fade, forKey: "opacity")
-        CATransaction.commit()
-    }
-
-    private func spin(_ on: Bool) {
-        spinning = on
-        for gradient in [lineGradient, haloGradient] {
-            guard on else { gradient.removeAnimation(forKey: "spin"); continue }
-            guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { continue }
-            let turn = CABasicAnimation(keyPath: "transform.rotation.z")
-            turn.fromValue = 0
-            turn.toValue = -2 * Double.pi
-            turn.duration = 7
-            turn.repeatCount = .infinity
-            gradient.add(turn, forKey: "spin")
-        }
     }
 }
