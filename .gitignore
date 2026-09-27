@@ -1,0 +1,6 @@
+.DS_Store
+
+# Secrets: never versioned
+.env
+.env.*
+!.env.example
