@@ -24,7 +24,7 @@ public enum ListenerFailure: Error, Sendable, Equatable {
         switch self {
         case .microphoneDenied: String(localized: "Souffleur can't hear you: microphone access is off.", bundle: .module)
         case .speechDenied: String(localized: "Speech recognition is off for Souffleur.", bundle: .module)
-        case .languageUnsupported(let name): String(localized: "Voice follow doesn't speak \(name) yet. Rolling at your pace instead.", bundle: .module)
+        case .languageUnsupported(let name): String(localized: "Voice follow can't hear \(name) on this Mac yet. Rolling at your pace instead.", bundle: .module)
         case .microphoneUnavailable: String(localized: "No microphone is available.", bundle: .module)
         }
     }

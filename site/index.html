@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Souffleur: your lines, right under the camera</title>
+  <meta name="description" content="A free, open source teleprompter for the Mac. It lives in the notch, right under your camera, and follows your voice word by word.">
+  <link rel="canonical" href="https://getsouffleur.vercel.app/">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#000000">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Souffleur">
+  <meta property="og:url" content="https://getsouffleur.vercel.app/">
+  <meta property="og:title" content="Souffleur: your lines, right under the camera">
+  <meta property="og:description" content="The teleprompter that lives in your MacBook's notch and follows your voice. Free and open source.">
+  <meta property="og:image" content="https://getsouffleur.vercel.app/assets/brand/og.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:image:alt" content="Souffleur: your lines, right under the camera.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/site.css">
+  <link rel="stylesheet" href="css/mac.css">
+  <link rel="stylesheet" href="css/souffleur.css">
+  <script src="js/site.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="nav">
+    <nav class="nav-inner" aria-label="Souffleur">
+      <a class="nav-brand" href="#top"><img src="assets/brand/icon-128.png" alt="" width="26" height="26"><span>Souffleur</span></a>
+      <div class="nav-links">
+        <a href="#voice">Voice follow</a>
+        <a href="#places">Places</a>
+        <a href="#control">Control</a>
+        <a href="#coach">Coach</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#open-source">Open source</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <a class="nav-cta" href="https://github.com/ruben4reall/souffleur/releases/latest/download/Souffleur.dmg">Download</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="wrap">
+        <p class="hero-name"><img src="assets/brand/icon-128.png" alt="" width="34" height="34">Souffleur</p>
+        <h1 id="hero-title">Your lines, right under the camera.</h1>
+      </div>
+      <figure class="lid" aria-label="The top of a MacBook screen: the prompter hangs from the notch, ringed with violet light, and follows the words as they are read.">
+        <div class="stage stage-hero" data-demo data-live="read">
+          <img class="shot on" data-frame="0" src="assets/notch/read-4.webp" style="--w:484" alt="">
+          <img class="shot" data-frame="1" src="assets/notch/read-9.webp" style="--w:484" alt="">
+          <img class="shot" data-frame="2" src="assets/notch/read-14.webp" style="--w:484" alt="">
+          <img class="shot" data-frame="3" src="assets/notch/read-19.webp" style="--w:484" alt="">
+          <img class="shot" data-frame="4" src="assets/notch/read-24.webp" style="--w:484" alt="">
+          <img class="shot" data-frame="5" src="assets/notch/read-29.webp" style="--w:484" alt="">
+          <img class="shot" data-state="controls" src="assets/notch/controls.webp" style="--w:484" alt="">
+          <img class="shot" data-state="countdown" src="assets/notch/countdown.webp" style="--w:484" alt="">
+          <img class="shot" data-state="summary" src="assets/notch/summary.webp" style="--w:484" alt="">
+        </div>
+      </figure>
+      <div class="wrap hero-foot">
+        <div class="chips demo-chips" role="group" aria-label="What the prompter shows"><button type="button" class="chip" data-state="read" aria-pressed="true" data-caption="Read aloud: the words you say dim, the next one lights up, and the line you are on stays right under the lens.">Voice follow</button><button type="button" class="chip" data-state="countdown" aria-pressed="false" data-caption="Three, two, one: the stage light comes up before you roll.">Countdown</button><button type="button" class="chip" data-state="controls" aria-pressed="false" data-caption="Rest the pointer on it: restart, slower, pause, faster, close.">Controls</button><button type="button" class="chip" data-state="summary" aria-pressed="false" data-caption="When the last word lands: your time, your pace, and how much of the script you covered.">The take</button></div>
+        <p class="demo-caption" aria-live="polite">Read aloud: the words you say dim, the next one lights up, and the line you are on stays right under the lens.</p>
+        <p class="hero-sub">Souffleur is a free, open source teleprompter for the Mac. It lives in the notch, right beside your camera, and follows your voice word by word, so you keep eye contact on every call, video and talk.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://github.com/ruben4reall/souffleur/releases/latest/download/Souffleur.dmg">Download for Mac</a>
+          <a class="btn btn-secondary" href="https://github.com/ruben4reall/souffleur"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>View on GitHub</a>
+        </div>
+        <ul class="facts">
+          <li>Free and open source</li>
+          <li>Version 1.0</li>
+          <li>macOS 14 or later</li>
+          <li>Your voice stays on your Mac</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section section-2" id="story" aria-labelledby="story-title">
+      <div class="wrap story">
+        <div>
+          <p class="eyebrow">Why Souffleur</p>
+          <h2 class="h2" id="story-title">The theatre&rsquo;s oldest trick, in your notch.</h2>
+          <p class="lead">In the theatre, the souffleur hides in a small box at the edge of the stage and whispers the next line to the actor. On a MacBook, that box is already there: the notch, a few millimetres from the lens.</p>
+          <p class="quote">Look at the camera, not at a script in the corner of your screen. Souffleur puts your words where your eyes should be.</p>
+        </div>
+        <img class="icon-lit" src="assets/brand/icon-256.png" width="256" height="256" alt="The Souffleur icon: black glass, the notch ringed with violet light, lines of text beneath it.">
+      </div>
+    </section>
+
+    <section class="section" id="voice" aria-labelledby="voice-title">
+      <div class="wrap">
+        <p class="eyebrow">Voice follow</p>
+        <h2 class="h2" id="voice-title">It listens. It keeps your place.</h2>
+        <p class="lead">Souffleur hears your words on your Mac and lines them up with your script. The words you have said dim, the next one lights up, and the line you are on stays under the camera. Stop to breathe and it waits. Skip a sentence and it finds you again.</p>
+        <div class="steps">
+          <div class="step"><figure class="shot-frame"><div class="stage" style="--span:560;--rows:190" role="img" aria-label="The prompter in the notch at the start of the script, the next word lit in violet."><img class="shot" src="assets/notch/read-4.webp" style="--w:484" alt=""></div></figure><p class="step-label">Say it</p><h3>The next word lights up</h3><p>Numbers, contractions and accents are understood, so &ldquo;25&rdquo; meets &ldquo;twenty-five&rdquo;.</p></div>
+          <div class="step"><figure class="shot-frame"><div class="stage" style="--span:560;--rows:190" role="img" aria-label="Further into the script: the words already read are dimmed."><img class="shot" src="assets/notch/read-19.webp" style="--w:484" alt=""></div></figure><p class="step-label">Pause</p><h3>It waits for you</h3><p>Nothing rolls while you think, drink or improvise. Your place is kept.</p></div>
+          <div class="step"><figure class="shot-frame"><div class="stage" style="--span:560;--rows:190" role="img" aria-label="The prompter further down the script, following the reader."><img class="shot" src="assets/notch/read-29.webp" style="--w:484" alt=""></div></figure><p class="step-label">Skip</p><h3>It finds you again</h3><p>Jump a paragraph and a few words are enough to pick you up further down.</p></div>
+        </div>
+        <div class="modes">
+          <div class="mode featured"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h1M7 8v8M11 5v14M15 8v8M19 11v2M21 12h0"/></svg><h3>Voice Follow <span class="badge">Default</span></h3><p>Word by word, from what you say. For scripts you mean to read as written.</p></div>
+          <div class="mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6l3 18H6z"/><path d="M12 15l5-8"/></svg><h3>Voice Pace</h3><p>Rolls at your pace while you speak, waits when you stop. Any language.</p></div>
+          <div class="mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v13M6 11l6 6 6-6M5 21h14"/></svg><h3>Auto Scroll</h3><p>A steady pace in words per minute, faster or slower as you go.</p></div>
+          <div class="mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5a2 2 0 1 1 4 0v6M12 11V4a2 2 0 1 1 4 0v7M16 11a2 2 0 1 1 4 0v3a7 7 0 0 1-7 7h-1a7 7 0 0 1-6-3l-2-4a2 2 0 0 1 3.4-2.1L8 13"/></svg><h3>Manual</h3><p>Only your keys, your clicker, your phone or your trackpad move it.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-2" id="places" aria-labelledby="places-title">
+      <div class="wrap">
+        <p class="eyebrow">Three places</p>
+        <h2 class="h2" id="places-title">In the notch, on your screen, or on a rig.</h2>
+        <p class="lead">The notch keeps your eyes a few millimetres from the lens. Without a notch, or with a camera on top of an external display, the prompter floats wherever you want it. For a teleprompter mirror, it fills any display, flipped.</p>
+        <div class="places">
+          <div class="place"><figure class="shot-frame"><div class="stage" style="--span:620;--rows:388" role="img" aria-label="The prompter hanging from the notch on a macOS desktop."><img class="shot" src="assets/notch/read-19.webp" style="--w:484" alt=""></div></figure><h3>Notch</h3><p>Compact, three lines under the camera, with the time on one side of the lens and your voice on the other.</p></div>
+          <div class="place"><figure class="shot-frame"><img src="assets/app/floating.webp" width="1040" height="400" alt="The floating prompter: a card of dark glass with a violet glow along its edge." loading="lazy"></figure><h3>Floating</h3><p>A card of glass you drag anywhere, under a webcam or beside your slides. It remembers where you left it.</p></div>
+          <div class="place"><figure class="shot-frame"><img class="full" src="assets/app/fullscreen.webp" width="1800" height="1169" alt="The prompter filling a whole display with large text and a band on the line being read." loading="lazy"></figure><h3>Full screen</h3><p>Any display, a Sidecar iPad or a beam-splitter rig, mirrored horizontally, vertically or both.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="control" aria-labelledby="control-title">
+      <div class="wrap">
+        <p class="eyebrow">Control</p>
+        <h2 class="h2" id="control-title">Hands free. Eyes up.</h2>
+        <p class="lead">Drive a take without looking away: shortcuts that work in every app, the presentation clicker or foot pedal you already own, or your phone.</p>
+        <div class="control">
+          <div class="card">
+            <h3>Shortcuts, everywhere</h3>
+            <p>They work while you are in Zoom, Keynote or your editor, and need no permission.</p>
+            <ul class="keys">
+              <li>Prompt, play or pause <kbd><span>&#8963;</span><span>&#8997;</span><span>&#8984;</span><span>P</span></kbd></li>
+              <li>Faster, slower <kbd><span>&#8963;</span><span>&#8997;</span><span>&#8984;</span><span>&uarr;</span><span>&darr;</span></kbd></li>
+              <li>Back or forward a line <kbd><span>&#8963;</span><span>&#8997;</span><span>&#8984;</span><span>&larr;</span><span>&rarr;</span></kbd></li>
+              <li>Restart <kbd><span>&#8963;</span><span>&#8997;</span><span>&#8984;</span><span>R</span></kbd></li>
+              <li>Show or hide <kbd><span>&#8963;</span><span>&#8997;</span><span>&#8984;</span><span>H</span></kbd></li>
+              <li>Presentation clicker, foot pedal <kbd><span>Page Up</span><span>Page Down</span></kbd></li>
+            </ul>
+            <p class="fine">Clicker keys only belong to Souffleur while the prompter is open. Links such as <code>souffleur://prompt?text=Hello</code> and Shortcuts actions run it from anywhere else.</p>
+          </div>
+          <div class="card phone-card">
+            <div>
+              <h3>Your phone is the remote</h3>
+              <p>Turn it on in Settings and scan the code: a page opens on your phone with play, pause, pace and the line you are on. Nothing to install.</p>
+              <p class="fine">Only your network, only the phone that scanned the code. Off until you turn it on.</p>
+            </div>
+            <div class="phone"><img src="assets/app/remote.webp" width="1170" height="2532" alt="The phone remote: the current line, progress, the pace, and large play, back, forward, slower, restart and faster buttons." loading="lazy"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-2" id="scripts" aria-labelledby="scripts-title">
+      <div class="wrap">
+        <p class="eyebrow">Scripts</p>
+        <h2 class="h2" id="scripts-title">Write it here, or bring it along.</h2>
+        <p class="lead">Your scripts live in a library, each a plain Markdown file on your Mac. Drop in a document and it becomes a script, speaker notes included.</p>
+        <div class="write">
+          <figure class="shot-frame"><img src="assets/app/library.webp" width="2080" height="1360" alt="The Souffleur window: the library of scripts on the left, the welcome script in the editor with its headings and cues, and the Prompt button." loading="lazy"></figure>
+          <div class="card">
+            <h3>Bring what you have</h3>
+            <div class="formats"><span>Text</span><span>Markdown</span><span>RTF</span><span>Word</span><span>PDF</span><span>PowerPoint notes</span></div>
+            <h3 style="margin-top:28px">Mark it lightly</h3>
+            <p>Three signs, all optional. Cues show quietly and are never waited for.</p>
+            <pre class="markup"><i># Opening</i>
+Hello everyone. <i>[smile]</i>
+This is <b>**the**</b> moment. <i>[pause]</i></pre>
+            <p class="fine">Word count and reading time at your pace, as you type.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="coach" aria-labelledby="coach-title">
+      <div class="wrap">
+        <p class="eyebrow">Coach</p>
+        <h2 class="h2" id="coach-title">Know how every take went.</h2>
+        <p class="lead">While you read, your pace shows beside the camera. When the last word lands, the prompter tells you how it went, and the library keeps your last take.</p>
+        <div class="coach">
+          <figure class="stage" style="--span:620;--rows:230" role="img" aria-label="The prompter at the end of a take: That's a take, 0:53, 140 words a minute, 100% of the script, with Again and Close."><img class="shot" src="assets/notch/summary.webp" style="--w:484" alt=""></figure>
+          <div class="figures">
+            <div class="figure-card"><p class="num">140</p><h3>Words a minute</h3><p>Live in voice follow, and averaged over the take.</p></div>
+            <div class="figure-card"><p class="num">0:53</p><h3>Time</h3><p>Elapsed and remaining, at your real pace.</p></div>
+            <div class="figure-card"><p class="num">100%</p><h3>Of the script</h3><p>How much you covered before you stopped.</p></div>
+            <div class="figure-card"><p class="num">3, 2, 1</p><h3>Countdown</h3><p>A breath before you roll, and Again for one more take.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-2" id="settings" aria-labelledby="settings-title">
+      <div class="wrap">
+        <p class="eyebrow">Settings</p>
+        <h2 class="h2" id="settings-title">Make it read the way you do.</h2>
+        <p class="lead">Font, size, spacing, colours, width and lines, mirror, countdown, the language to listen in, the pace. Every choice applies to the next take.</p>
+        <div class="settings-shots">
+          <figure><img src="assets/app/settings-prompter.webp" width="1160" height="1496" alt="Settings, the Prompter pane: place, width, lines, font, size and line spacing." loading="lazy"></figure>
+          <figure><img src="assets/app/settings-voice.webp" width="1160" height="1176" alt="Settings, the Voice pane: the four ways to scroll, the language and the pace." loading="lazy"></figure>
+          <figure><img src="assets/app/settings-controls.webp" width="1160" height="1416" alt="Settings, the Controls pane: keyboard shortcuts, presentation remotes and the phone remote." loading="lazy"></figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="compare" aria-labelledby="compare-title">
+      <div class="wrap">
+        <p class="eyebrow">Side by side</p>
+        <h2 class="h2" id="compare-title">Everything the paid prompters do. Then some.</h2>
+        <p class="lead">The notch teleprompters of 2026, from what each one lists.</p>
+        <div class="table-card">
+          <table class="compare">
+            <thead><tr><th scope="col"><span class="visually-hidden">Feature</span></th><th scope="col" class="us">Souffleur</th><th scope="col">Notchie</th><th scope="col">Moody</th><th scope="col">CueNotch</th><th scope="col">Textream</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Price</th><td class="us">Free</td><td>$29.99</td><td>$39</td><td>$29.99, or $7.99 a week</td><td>Free</td></tr>
+              <tr><th scope="row">Open source</th><td class="us">MIT</td><td>No</td><td>No</td><td>No</td><td>MIT</td></tr>
+              <tr><th scope="row">Follows your voice</th><td class="us">Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+              <tr><th scope="row">Voice kept on your Mac</th><td class="us">Always</td><td>Not verified</td><td>Not verified</td><td>Not verified</td><td>Depends on macOS</td></tr>
+              <tr><th scope="row">Notch, floating and full screen</th><td class="us">Yes</td><td>Not verified</td><td>Not verified</td><td>Not verified</td><td>Yes</td></tr>
+              <tr><th scope="row">Mirror for a rig</th><td class="us">Yes</td><td>Not verified</td><td>Not verified</td><td>Not verified</td><td>Yes</td></tr>
+              <tr><th scope="row">Phone remote</th><td class="us">Yes</td><td>Not verified</td><td>Not verified</td><td>Not verified</td><td>Yes</td></tr>
+              <tr><th scope="row">Clickers and foot pedals</th><td class="us">Yes</td><td>Not verified</td><td>Not verified</td><td>Not verified</td><td>Not verified</td></tr>
+              <tr><th scope="row">Pace and take summary</th><td class="us">Yes</td><td>Not verified</td><td>Not verified</td><td>Paid</td><td>Not verified</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="fine swipe-hint">Swipe the table to see every app.</p>
+        <p class="fine">Prices and features as listed by each app in September 2026. &ldquo;Not verified&rdquo; means we could not confirm it either way. Corrections are welcome on GitHub.</p>
+      </div>
+    </section>
+
+    <section class="section section-2" id="privacy" aria-labelledby="privacy-title">
+      <div class="wrap">
+        <p class="eyebrow">Privacy</p>
+        <h2 class="h2" id="privacy-title">It hears you. It tells no one.</h2>
+        <div class="promises">
+          <div class="promise"><h3>Your voice stays on your Mac</h3><p>Speech is recognised on the Mac, never sent to a server. If your Mac cannot recognise a language offline, Souffleur rolls at your pace instead.</p></div>
+          <div class="promise"><h3>No account, no tracking</h3><p>No sign in and no analytics in the app. It connects only to check for updates, and to your phone when you turn the remote on.</p></div>
+          <div class="promise"><h3>Honest about screen sharing</h3><p>The prompter is kept out of captures that respect macOS&rsquo;s protection. Since macOS 15 some apps capture it anyway, so share a window, not your whole screen.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="open-source" aria-labelledby="oss-title">
+      <div class="wrap">
+        <p class="eyebrow">Open source</p>
+        <h2 class="h2" id="oss-title">Every line is on GitHub.</h2>
+        <p class="lead">Souffleur is MIT licensed: read exactly what runs on your Mac, change it, ship your own. Issues and pull requests are welcome.</p>
+        <a class="repo" href="https://github.com/ruben4reall/souffleur">
+          <span class="repo-top"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg><b>ruben4reall / souffleur</b></span>
+          <span class="repo-desc">Your lines, right under the camera. Swift, AppKit and SwiftUI, the voice tracker tested on its own.</span>
+          <span class="repo-meta"><span><i class="lang-dot"></i>Swift</span><span>MIT License</span><span>macOS 14+</span></span>
+        </a>
+        <div class="features">
+          <div class="feature"><h3>A tracker you can read</h3><p>The alignment of what you say with what you wrote is plain Swift, free of AppKit, and tested case by case.</p></div>
+          <div class="feature"><h3>Drawn by the compositor</h3><p>The prompter is a Core Animation shape morphed with springs, and its violet light turns in the render server.</p></div>
+          <div class="feature"><h3>Idle means idle</h3><p>No microphone, timer or animation runs while the prompter is closed.</p></div>
+          <div class="feature"><h3>Two recognisers</h3><p>SpeechAnalyzer on macOS 26 when its model is on your Mac, SFSpeechRecognizer on device otherwise.</p></div>
+          <div class="feature"><h3>Links and Shortcuts</h3><p><code>souffleur://</code> links and Shortcuts actions start, pause and close a take.</p></div>
+          <div class="feature"><h3>A remote in one file</h3><p>A small local web server with a pairing code, and one page of HTML for your phone.</p></div>
+        </div>
+        <div class="actions actions-start">
+          <a class="btn btn-secondary" href="https://github.com/ruben4reall/souffleur">View on GitHub</a>
+          <a class="btn btn-secondary" href="https://github.com/ruben4reall/souffleur/blob/main/CONTRIBUTING.md">Contribute</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-2" id="faq" aria-labelledby="faq-title">
+      <div class="wrap-narrow">
+        <h2 class="h2" id="faq-title">Questions</h2>
+        <div class="faq">
+          <details><summary>Does my Mac need a notch?</summary><div><p>No. On a Mac without a notch, the prompter hangs from the middle of the menu bar, or floats wherever you put it, or fills an external display.</p></div></details>
+          <details><summary>Does it send my voice anywhere?</summary><div><p>No. Recognition runs on your Mac. If your Mac cannot recognise the script&rsquo;s language offline, Souffleur switches to Voice Pace, which only listens for when you are speaking.</p></div></details>
+          <details><summary>Which languages does voice follow understand?</summary><div><p>Those your Mac recognises on device, which covers English, French, German, Spanish, Italian, Portuguese, Chinese, Japanese and more. Souffleur listens in the language your script is written in, or the one you choose. Voice Pace and Auto Scroll work in any language.</p></div></details>
+          <details><summary>Will people see it when I share my screen?</summary><div><p>Apps that respect macOS&rsquo;s capture protection will not. Since macOS 15, apps that record the screen with ScreenCaptureKit can capture it anyway, whatever any teleprompter says. Share a window rather than your whole screen, and nobody sees your script.</p></div></details>
+          <details><summary>Can I use it with a teleprompter mirror?</summary><div><p>Yes. Choose Full Screen, pick the display under the glass, and mirror the text horizontally, vertically or both.</p></div></details>
+          <details><summary>Does it work with my presentation clicker?</summary><div><p>Most clickers and foot pedals send Page Up and Page Down. While the prompter is open, those move the script, and Page Down starts a paused take.</p></div></details>
+          <details><summary>Can I control it from my phone?</summary><div><p>Yes. Turn on the phone remote in Settings, Controls, and scan the code. Your phone and your Mac need to be on the same network; only a phone that scanned the code can connect.</p></div></details>
+          <details><summary>How do I remove it?</summary><div><p>Quit Souffleur and move it to the Trash. Your scripts are in <code>~/Library/Application Support/Souffleur</code>; with Homebrew, <code>brew uninstall --cask --zap souffleur</code>.</p></div></details>
+          <details><summary>Is Souffleur made by Apple?</summary><div><p>No. Souffleur is an independent open source project and is not affiliated with Apple.</p></div></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="section download" id="download" aria-labelledby="download-title">
+      <div class="wrap">
+        <figure class="mac" data-mac role="img" aria-label="A MacBook with Souffleur's prompter in its notch, ringed with violet light.">
+          <div class="mac-model">
+            <div class="mac-shadow"></div>
+            <div class="mac-base"><div class="mac-keyboard"></div><div class="mac-trackpad"></div></div>
+            <div class="mac-front"></div>
+            <div class="mac-lid">
+              <div class="mac-screen">
+                <div class="mac-display">
+                  <img class="mac-still" src="assets/desktop.webp" width="1920" height="1247" alt="" loading="lazy">
+                  <div class="screen-notch"><img class="shot" src="assets/notch/read-19.webp" style="--w:484" alt=""></div>
+                </div>
+              </div>
+              <div class="mac-shell"></div>
+              <div class="mac-edge"></div>
+            </div>
+          </div>
+        </figure>
+        <h2 class="h2 center-h" id="download-title">Look up. Your lines are there.</h2>
+        <p class="lead center-h">Free, open source, and ready in a minute.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://github.com/ruben4reall/souffleur/releases/latest/download/Souffleur.dmg">Download for Mac</a>
+          <a class="btn btn-secondary" href="https://github.com/ruben4reall/souffleur">View on GitHub</a>
+        </div>
+        <p class="fine">macOS 14 or later · Apple silicon and Intel · Notarized by Apple. Updates arrive through the app, when you allow them.</p>
+        <p class="fine">Or install it with Homebrew: <code>brew install --cask ruben4reall/tap/souffleur</code></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer-top">
+        <a class="footer-brand" href="#top"><img src="assets/brand/icon-128.png" alt="" width="22" height="22"><span>Souffleur</span></a>
+        <span class="footer-line">Your lines, right under the camera.</span>
+        <div class="footer-links"><a href="https://github.com/ruben4reall/souffleur">GitHub</a><a href="https://github.com/ruben4reall/souffleur/releases">Releases</a><a href="https://github.com/ruben4reall/souffleur/blob/main/LICENSE">MIT License</a></div>
+      </div>
+      <p class="legal">Made in Switzerland by Ruben Catalao. Souffleur is not affiliated with Apple. MacBook and macOS are trademarks of Apple Inc. Notchie, Moody, CueNotch and Textream belong to their authors.</p>
+    </div>
+  </footer>
+</body>
+</html>

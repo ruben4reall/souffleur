@@ -1,0 +1,13 @@
+{
+  "name": "souffleur-website",
+  "private": true,
+  "type": "module",
+  "description": "The Souffleur website: static files here, local checks in tools/. No dependencies.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "audit": "node tools/audit.mjs",
+    "frames": "node tools/frames.mjs"
+  }
+}

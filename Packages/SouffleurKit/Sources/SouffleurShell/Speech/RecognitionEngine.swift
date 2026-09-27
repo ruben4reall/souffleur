@@ -137,8 +137,10 @@ final class LegacyEngine: RecognitionEngine, @unchecked Sendable {
     private var stopped = false
     private var finished = ""
 
+    /// Nil unless the language can be recognised on this Mac: Souffleur never sends a voice to a server.
     init?(locale: Locale, vocabulary: [String], report: @escaping @Sendable (ListenerEvent) -> Void) {
-        guard let recognizer = SFSpeechRecognizer(locale: locale), recognizer.isAvailable else { return nil }
+        guard let recognizer = SFSpeechRecognizer(locale: locale), recognizer.isAvailable,
+              recognizer.supportsOnDeviceRecognition else { return nil }
         self.recognizer = recognizer
         self.vocabulary = vocabulary
         self.report = report
@@ -150,7 +152,7 @@ final class LegacyEngine: RecognitionEngine, @unchecked Sendable {
         request.taskHint = .dictation
         request.contextualStrings = vocabulary
         request.addsPunctuation = false
-        if recognizer.supportsOnDeviceRecognition { request.requiresOnDeviceRecognition = true }
+        request.requiresOnDeviceRecognition = true
         lock.withLock { self.request = request }
         task = recognizer.recognitionTask(with: request) { [weak self] result, error in
             guard let self else { return }

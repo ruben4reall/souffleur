@@ -10,29 +10,29 @@ enum RemotePage {
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Souffleur Remote</title>
     <style>
-    :root { --lamp: #ffb447; --ink: #f7f7fa; --dim: rgba(235,235,245,.55); --faint: rgba(235,235,245,.28); --well: rgba(255,255,255,.08); }
+    :root { --accent: #9d84ff; --fuchsia: #ff5ac8; --ink: #f7f7fa; --dim: rgba(235,235,245,.55); --faint: rgba(235,235,245,.28); --well: rgba(255,255,255,.08); }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; height: 100%; background: #08080a; color: var(--ink);
+    html, body { margin: 0; height: 100%; background: radial-gradient(120% 60% at 50% 0%, rgba(143,107,255,.16), transparent 60%), #08080a; color: var(--ink);
       font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; -webkit-user-select: none; user-select: none; }
     main { min-height: 100%; display: flex; flex-direction: column; padding: max(20px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); gap: 18px; }
     header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .brand { font-weight: 650; letter-spacing: -.01em; font-size: 15px; display: flex; align-items: center; gap: 8px; }
     .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); transition: background .3s; }
-    .dot.live { background: var(--lamp); box-shadow: 0 0 12px rgba(255,180,71,.7); }
+    .dot.live { background: var(--accent); box-shadow: 0 0 12px rgba(157,132,255,.8); }
     .title { color: var(--dim); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55%; }
     .line { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center;
       font-size: clamp(22px, 7vw, 34px); font-weight: 600; letter-spacing: -.015em; line-height: 1.25; padding: 8px 4px; min-height: 30vh; }
     .line.empty { color: var(--faint); font-weight: 500; font-size: 18px; }
     .meta { display: flex; justify-content: space-between; color: var(--dim); font-size: 13px; font-variant-numeric: tabular-nums; }
     .bar { height: 4px; border-radius: 2px; background: var(--well); overflow: hidden; }
-    .bar i { display: block; height: 100%; width: 0; background: var(--lamp); border-radius: 2px; transition: width .4s ease; }
+    .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--fuchsia)); border-radius: 2px; transition: width .4s ease; }
     .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: center; justify-items: center; }
     button { appearance: none; border: 0; color: var(--ink); background: var(--well); border-radius: 22px; width: 100%; height: 64px;
       font: 600 15px/1 inherit; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform .12s, background .2s; }
     button:active { transform: scale(.96); background: rgba(255,255,255,.14); }
     button svg { width: 22px; height: 22px; fill: currentColor; }
-    .play { grid-column: 2; width: 96px; height: 96px; border-radius: 50%; background: var(--lamp); color: #111; }
-    .play:active { background: #f08a24; }
+    .play { grid-column: 2; width: 96px; height: 96px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--fuchsia)); color: #fff; box-shadow: 0 10px 40px rgba(179,92,255,.45); }
+    .play:active { filter: brightness(.9); }
     .play svg { width: 34px; height: 34px; }
     .offline { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); background: #2a2a2e; color: var(--dim);
       font-size: 13px; padding: 8px 14px; border-radius: 99px; opacity: 0; transition: opacity .3s; pointer-events: none; }
