@@ -2,7 +2,10 @@
 
 Each release's section is what Souffleur's update window and the GitHub release show. Dates are in ISO format.
 
-## Unreleased
+## 1.2.0 (2026-09-27)
+
+The prompter now hangs just below the notch and leaves the menu bar free, and every feature went through a full review.
+If you use 1.1.0, update: pressing play in Voice Pace, its default, closed the app.
 
 - **Below the notch**: the prompter hangs from the notch's lower edge and never covers the menu bar, whose items and
   whatever other apps show beside the camera stay free. The time and the voice move to a band at its top.
