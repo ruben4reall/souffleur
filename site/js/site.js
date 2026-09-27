@@ -30,16 +30,14 @@ function whileVisible(element, interval, step) {
 }
 
 (() => {
-  // The reel: the real prompter following a voice, one capture after the other.
-  const reel = document.querySelector('[data-reel]');
-  if (!reel || still) return;
-  const shots = [...reel.querySelectorAll('.action-shot')];
-  let index = 0;
-  whileVisible(reel, 1500, () => {
-    shots[index].classList.remove('on');
-    index = (index + 1) % shots.length;
-    shots[index].classList.add('on');
-  });
+  // The filmed take plays while it is on screen; with reduced motion it stays on its poster, with controls.
+  const video = document.querySelector('[data-reel]');
+  if (!video) return;
+  if (still) { video.controls = true; return; }
+  new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) video.play().catch(() => { video.controls = true; });
+    else video.pause();
+  }, { threshold: 0.35 }).observe(video);
 })();
 
 (() => {

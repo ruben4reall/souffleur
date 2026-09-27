@@ -117,9 +117,7 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
 .action { position: relative; display: flex; justify-content: flex-end; align-items: center; min-height: 783px; padding: 165px 50px 165px 0; }
 .action-media { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: min(815px, 58vw); margin: 0; }
 .action-screen { position: relative; aspect-ratio: 900 / 560; border-radius: 0 16px 16px 0; overflow: hidden; background: #0b0b0e; box-shadow: 0 30px 90px rgba(124, 59, 255, .22); }
-.action-desktop { position: absolute; top: 0; left: 50%; width: 168%; max-width: none; transform: translateX(-50%); }
-.action-shot { position: absolute; top: 0; left: 50%; width: 50.33%; transform: translateX(-50%); opacity: 0; transition: opacity .5s ease; }
-.action-shot.on { opacity: 1; }
+.action-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .action-media figcaption { margin: 14px 0 0 50px; color: var(--gray); font-size: 14px; font-weight: 500; }
 .action-copy { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 24px; max-width: 380px; }
 
@@ -338,7 +336,7 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .prompter-track, .lightfall i, .button-primary, .spotlight-lit { animation: none; }
-  .action-shot, .more-lights img { transition: none; }
+  .more-lights img { transition: none; }
 }
 
 /* Page not found */
