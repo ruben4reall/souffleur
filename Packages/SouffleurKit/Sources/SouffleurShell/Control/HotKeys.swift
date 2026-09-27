@@ -7,6 +7,8 @@ final class HotKeys {
     struct Binding {
         let key: Int
         let modifiers: Int
+        /// How the shortcut reads, for Settings when another app already holds it.
+        var label = ""
         let action: @MainActor () -> Void
     }
 
@@ -31,19 +33,26 @@ final class HotKeys {
         }, 1, &type, context, &handler)
     }
 
-    /// Registers a group of shortcuts and returns their ids, to remove them together later.
+    /// Registers a group of shortcuts. Returns their ids, to remove them together later, and the labels of those
+    /// macOS refused because another app holds them.
     @discardableResult
-    func register(_ bindings: [Binding]) -> [UInt32] {
-        bindings.compactMap { binding in
+    func register(_ bindings: [Binding]) -> (ids: [UInt32], taken: [String]) {
+        var ids: [UInt32] = []
+        var taken: [String] = []
+        for binding in bindings {
             let id = nextID
             nextID += 1
             var reference: EventHotKeyRef?
             let status = RegisterEventHotKey(UInt32(binding.key), UInt32(binding.modifiers), EventHotKeyID(signature: Self.signature, id: id),
                                              GetApplicationEventTarget(), 0, &reference)
-            guard status == noErr else { return nil }
-            registered[id] = (reference, binding.action)
-            return id
+            if status == noErr {
+                registered[id] = (reference, binding.action)
+                ids.append(id)
+            } else {
+                taken.append(binding.label)
+            }
         }
+        return (ids, taken)
     }
 
     func unregister(_ ids: [UInt32]) {

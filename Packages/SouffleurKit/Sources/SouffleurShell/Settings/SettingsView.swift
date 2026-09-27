@@ -242,6 +242,15 @@ private struct ControlsPane: View {
         Form {
             Section {
                 Toggle(String(localized: "Keyboard shortcuts in every app", bundle: .module), isOn: $hotKeys)
+                if hotKeys, !app.takenShortcuts.isEmpty {
+                    Label {
+                        Text("Another app already uses \(app.takenShortcuts.formatted(.list(type: .and))). Quit it or change its shortcut, then turn this off and on.", bundle: .module)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
+                    }
+                    .font(.system(size: 12))
+                }
                 if hotKeys {
                     shortcut("⌃⌥⌘P", String(localized: "Prompt the selected script, play or pause", bundle: .module))
                     shortcut("⌃⌥⌘↑ ↓", String(localized: "Faster, slower", bundle: .module))
