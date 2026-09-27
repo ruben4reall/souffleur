@@ -77,6 +77,7 @@ final class NotchPresentation: PrompterPresentation {
         let path = outline(open: isOpen)
         let open = layout.shape(open: true)
         glow.configure(center: CGPoint(x: size.width / 2, y: size.height - open.gap - open.height / 2))
+        glow.setColors(Preferences.stageLight)
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         backdrop.shapeLayer.path = path

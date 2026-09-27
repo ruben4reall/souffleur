@@ -66,6 +66,7 @@ final class CardPresentation: PrompterPresentation {
             if glowView.superview == nil { container.addSubview(glowView, positioned: .above, relativeTo: background) }
             glowView.frame = bounds
             glowView.configure(center: CGPoint(x: bounds.midX, y: bounds.midY))
+            glowView.setColors(Preferences.stageLight)
             let rim = CGPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), cornerWidth: 25, cornerHeight: 25, transform: nil)
             glowView.rimLayers.forEach { $0.path = rim }
         }

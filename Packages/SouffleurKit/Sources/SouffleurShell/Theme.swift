@@ -15,15 +15,27 @@ public enum Theme {
     public static let highlightNS = NSColor(srgbRed: 0.804, green: 0.725, blue: 1, alpha: 1)
     public static let stage = Color(red: 0.027, green: 0.027, blue: 0.031)
 
-    /// The stage light running around the notch: violet, purple, fuchsia, a warm pink, and back.
-    static let glowColors: [CGColor] = [
-        CGColor(srgbRed: 0.431, green: 0.357, blue: 1, alpha: 1),
-        CGColor(srgbRed: 0.643, green: 0.361, blue: 1, alpha: 1),
-        CGColor(srgbRed: 1, green: 0.353, blue: 0.784, alpha: 1),
-        CGColor(srgbRed: 1, green: 0.561, blue: 0.690, alpha: 1),
-        CGColor(srgbRed: 0.643, green: 0.361, blue: 1, alpha: 1),
-        CGColor(srgbRed: 0.431, green: 0.357, blue: 1, alpha: 1),
-    ]
+    /// The stage light running around the notch, in the colour chosen in Settings (violet by default).
+    static func glowColors(_ light: StageLight) -> [CGColor] {
+        light.stops.map { CGColor(srgbRed: $0.0, green: $0.1, blue: $0.2, alpha: 1) }
+    }
+
+    /// The next word and the prompter's figures, in a light tint of the stage light.
+    static func highlight(_ light: StageLight) -> NSColor {
+        let (red, green, blue) = light.highlight
+        return NSColor(srgbRed: red, green: green, blue: blue, alpha: 1)
+    }
+
+    static func highlightColor(_ light: StageLight) -> Color {
+        let (red, green, blue) = light.highlight
+        return Color(red: red, green: green, blue: blue)
+    }
+
+    /// The two ends of the light, for the level meter and the swatches.
+    static func lightEnds(_ light: StageLight) -> [Color] {
+        let stops = light.stops
+        return [Color(red: stops[0].0, green: stops[0].1, blue: stops[0].2), Color(red: stops[2].0, green: stops[2].1, blue: stops[2].2)]
+    }
 
     // The system's label colours on a dark background.
     static let secondaryText = Color(red: 0.92, green: 0.92, blue: 0.96).opacity(0.6)

@@ -99,6 +99,45 @@ public enum PrompterFont: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+/// The light around the prompter, and the colour of the next word.
+public enum StageLight: String, CaseIterable, Identifiable, Sendable {
+    case violet, ocean, ember, mint, gold, off
+    public var id: String { rawValue }
+
+    public var title: String {
+        switch self {
+        case .violet: String(localized: "Violet", bundle: .module)
+        case .ocean: String(localized: "Ocean", bundle: .module)
+        case .ember: String(localized: "Ember", bundle: .module)
+        case .mint: String(localized: "Mint", bundle: .module)
+        case .gold: String(localized: "Gold", bundle: .module)
+        case .off: String(localized: "Off", bundle: .module)
+        }
+    }
+
+    /// The stops of the turning gradient, in sRGB, from its start round to the same colour.
+    var stops: [(Double, Double, Double)] {
+        switch self {
+        case .violet, .off: [(0.431, 0.357, 1), (0.643, 0.361, 1), (1, 0.353, 0.784), (1, 0.561, 0.690), (0.643, 0.361, 1), (0.431, 0.357, 1)]
+        case .ocean: [(0.184, 0.420, 1), (0.247, 0.663, 1), (0.361, 0.882, 1), (0.561, 0.608, 1), (0.247, 0.663, 1), (0.184, 0.420, 1)]
+        case .ember: [(1, 0.353, 0.212), (1, 0.541, 0.239), (1, 0.757, 0.361), (1, 0.435, 0.569), (1, 0.541, 0.239), (1, 0.353, 0.212)]
+        case .mint: [(0.122, 0.796, 0.561), (0.231, 0.890, 0.753), (0.612, 0.961, 0.643), (0.298, 0.784, 1), (0.231, 0.890, 0.753), (0.122, 0.796, 0.561)]
+        case .gold: [(1, 0.698, 0.247), (1, 0.827, 0.420), (1, 0.945, 0.659), (1, 0.616, 0.361), (1, 0.827, 0.420), (1, 0.698, 0.247)]
+        }
+    }
+
+    /// A light tint of the colour that reads well on black, for the next word and figures.
+    var highlight: (Double, Double, Double) {
+        switch self {
+        case .violet, .off: (0.804, 0.725, 1)
+        case .ocean: (0.663, 0.847, 1)
+        case .ember: (1, 0.788, 0.659)
+        case .mint: (0.714, 0.961, 0.855)
+        case .gold: (1, 0.890, 0.639)
+        }
+    }
+}
+
 public enum MirrorMode: String, CaseIterable, Identifiable, Sendable {
     case none, horizontal, vertical, both
     public var id: String { rawValue }
@@ -131,6 +170,7 @@ public enum Preferences {
         public static let fullScreenFontSize = "fullScreenFontSize"
         public static let mirror = "mirror"
         public static let alignment = "alignment"
+        public static let stageLight = "stageLight"
         public static let countdown = "countdown"
         public static let hiddenFromCapture = "hiddenFromCapture"
         public static let dimsReadWords = "dimsReadWords"
@@ -162,6 +202,7 @@ public enum Preferences {
         Key.fullScreenFontSize: 64.0,
         Key.mirror: MirrorMode.none.rawValue,
         Key.alignment: "center",
+        Key.stageLight: StageLight.violet.rawValue,
         Key.countdown: true,
         Key.hiddenFromCapture: true,
         Key.dimsReadWords: true,
@@ -210,6 +251,7 @@ public enum Preferences {
     }
     public static var fullScreenDisplay: String? { store.string(forKey: Key.fullScreenDisplay) }
     public static var mirror: MirrorMode { MirrorMode(rawValue: store.string(forKey: Key.mirror) ?? "") ?? .none }
+    public static var stageLight: StageLight { StageLight(rawValue: store.string(forKey: Key.stageLight) ?? "") ?? .violet }
     public static var countdown: Bool { store.bool(forKey: Key.countdown) }
     /// Centred text keeps the eyes under the camera; left-aligned reads like a page.
     public static var centersText: Bool { store.string(forKey: Key.alignment) != "left" }
