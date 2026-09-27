@@ -2,6 +2,13 @@
 
 Each release's section is what Souffleur's update window and the GitHub release show. Dates are in ISO format.
 
+## Unreleased
+
+- **Fit in**: one click in the speed card sets the speed so the script lasts exactly 30 seconds, a minute, two, or
+  another usual length.
+- **Use my pace**: after a take read at another pace than the speed set, the summary offers to roll at the reader's
+  own pace from then on.
+
 ## 1.1.0 (2026-09-27)
 
 Souffleur now looks and behaves like the notch prompters people already know, and keeps everything it adds.
