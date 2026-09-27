@@ -128,15 +128,18 @@ final class CardPresentation: PrompterPresentation {
         }
     }
 
+    func glow(_ intensity: CGFloat) {}
+
     func dismiss(completion: @escaping @MainActor () -> Void) {
         state.isHovering = false
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.2
             panel.animator().alphaValue = 0
-        } completionHandler: { [weak self] in
+        } completionHandler: {
+            // Held until the fade ends: the controller has already let go of this presentation.
             MainActor.assumeIsolated {
-                self?.panel.orderOut(nil)
-                self?.text.halt()
+                self.panel.orderOut(nil)
+                self.text.halt()
                 completion()
             }
         }

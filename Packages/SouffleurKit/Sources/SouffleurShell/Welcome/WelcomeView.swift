@@ -32,7 +32,7 @@ public struct WelcomeView: View {
     private var background: some View {
         ZStack {
             Color(nsColor: .windowBackgroundColor)
-            RadialGradient(colors: [Theme.lamp.opacity(0.18), .clear], center: .top, startRadius: 10, endRadius: 360)
+            RadialGradient(colors: [Theme.accent.opacity(0.18), .clear], center: .top, startRadius: 10, endRadius: 360)
         }
         .ignoresSafeArea()
     }
@@ -42,7 +42,7 @@ public struct WelcomeView: View {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable()
                 .frame(width: 112, height: 112)
-                .shadow(color: Theme.lamp.opacity(0.35), radius: 24, y: 8)
+                .shadow(color: Theme.accent.opacity(0.35), radius: 24, y: 8)
             VStack(spacing: 6) {
                 Text("Souffleur").font(.system(size: 30, weight: .bold))
                 Text("Your lines, right under the camera.", bundle: .module)
@@ -63,7 +63,7 @@ public struct WelcomeView: View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: symbol)
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(Theme.lamp)
+                .foregroundStyle(Theme.accent)
                 .frame(width: 28)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.system(size: 13, weight: .semibold))
@@ -84,18 +84,18 @@ public struct WelcomeView: View {
                         HStack(spacing: 14) {
                             Image(systemName: option.symbol)
                                 .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(mode == option.rawValue ? Color.black : Theme.lamp)
+                                .foregroundStyle(mode == option.rawValue ? Color.white : Theme.accent)
                                 .frame(width: 40, height: 40)
-                                .background(Circle().fill(mode == option.rawValue ? Theme.lamp : Theme.lamp.opacity(0.14)))
+                                .background(Circle().fill(mode == option.rawValue ? Theme.accent : Theme.accent.opacity(0.14)))
                             VStack(alignment: .leading, spacing: 3) {
                                 HStack(spacing: 6) {
                                     Text(option.title).font(.system(size: 14, weight: .semibold))
                                     if option == .voice {
                                         Text("Recommended", bundle: .module)
                                             .font(.system(size: 10, weight: .bold))
-                                            .foregroundStyle(Theme.ember)
+                                            .foregroundStyle(Theme.fuchsia)
                                             .padding(.horizontal, 6).padding(.vertical, 2)
-                                            .background(Capsule().fill(Theme.lamp.opacity(0.16)))
+                                            .background(Capsule().fill(Theme.accent.opacity(0.16)))
                                     }
                                 }
                                 Text(option.subtitle).font(.system(size: 12)).foregroundStyle(.secondary)
@@ -104,7 +104,7 @@ public struct WelcomeView: View {
                         }
                         .padding(14)
                         .background(RoundedRectangle(cornerRadius: 14).fill(Color.primary.opacity(mode == option.rawValue ? 0.07 : 0.035)))
-                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(mode == option.rawValue ? Theme.lamp : .clear, lineWidth: 1.5))
+                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(mode == option.rawValue ? Theme.accent : .clear, lineWidth: 1.5))
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -124,7 +124,7 @@ public struct WelcomeView: View {
         VStack(spacing: 20) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 54))
-                .foregroundStyle(Theme.lamp)
+                .foregroundStyle(Theme.accent)
             VStack(spacing: 6) {
                 Text("You're ready.", bundle: .module).font(.system(size: 24, weight: .bold))
                 Text("Press Prompt, look at the camera, and speak.", bundle: .module).foregroundStyle(.secondary)
@@ -155,7 +155,7 @@ public struct WelcomeView: View {
             HStack(spacing: 6) {
                 ForEach(0..<3) { index in
                     Capsule()
-                        .fill(index == step ? Theme.lamp : Color.primary.opacity(0.15))
+                        .fill(index == step ? Theme.accent : Color.primary.opacity(0.15))
                         .frame(width: index == step ? 18 : 6, height: 6)
                 }
             }
@@ -168,8 +168,8 @@ public struct WelcomeView: View {
                 next()
             }
             .buttonStyle(.borderedProminent)
-            .tint(Theme.lamp)
-            .foregroundStyle(.black)
+            .tint(Theme.accent)
+            .foregroundStyle(.white)
             .controlSize(.large)
             .keyboardShortcut(.defaultAction)
         }

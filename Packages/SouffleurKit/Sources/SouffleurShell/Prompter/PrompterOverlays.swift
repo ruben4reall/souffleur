@@ -14,9 +14,9 @@ struct ControlBar: View {
             Button(action: { state.actions.toggle() }) {
                 Image(systemName: state.isRolling ? "pause.fill" : "play.fill")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.white)
                     .frame(width: 36, height: 36)
-                    .background(Circle().fill(Theme.lamp))
+                    .background(Circle().fill(LinearGradient(colors: [Theme.accent, Theme.fuchsia], startPoint: .topLeading, endPoint: .bottomTrailing)))
                     .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.plain)
@@ -90,9 +90,9 @@ struct PrompterOverlay: View {
         case .countdown(let number):
             Text("\(number)")
                 .font(.system(size: 64 * scale, weight: .semibold, design: .rounded))
-                .foregroundStyle(Theme.lamp)
+                .foregroundStyle(LinearGradient(colors: [Theme.highlight, Theme.fuchsia], startPoint: .top, endPoint: .bottom))
                 .contentTransition(.numericText(countsDown: true))
-                .shadow(color: Theme.lamp.opacity(0.45), radius: 18)
+                .shadow(color: Theme.accent.opacity(0.6), radius: 18)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.black.opacity(0.72))
                 .animation(.spring(duration: 0.35), value: number)
@@ -141,7 +141,7 @@ struct TimerLabel: View {
     var body: some View {
         HStack(spacing: 5) {
             Circle()
-                .fill(state.isRolling ? Theme.lamp : Color.white.opacity(0.35))
+                .fill(state.isRolling ? Theme.accent : Color.white.opacity(0.35))
                 .frame(width: 5, height: 5)
             Text(Pace.clock(state.elapsed))
                 .foregroundStyle(Color.white.opacity(0.9))
@@ -182,7 +182,7 @@ struct LevelMeter: View {
                 let weights: [Float] = [0.6, 1, 0.8, 0.5]
                 let height = 3 + CGFloat(min(1, level * weights[index] * 1.4)) * 9
                 Capsule()
-                    .fill(speaking ? Theme.lamp : Color.white.opacity(0.4))
+                    .fill(speaking ? AnyShapeStyle(LinearGradient(colors: [Theme.fuchsia, Theme.accent], startPoint: .bottom, endPoint: .top)) : AnyShapeStyle(Color.white.opacity(0.4)))
                     .frame(width: 2.5, height: height)
             }
         }
@@ -219,7 +219,7 @@ struct SummaryCard: View {
         VStack(spacing: 2) {
             Text(value)
                 .font(.system(size: 17, weight: .semibold, design: .rounded).monospacedDigit())
-                .foregroundStyle(Theme.lamp)
+                .foregroundStyle(Theme.highlight)
             Text(label)
                 .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(Theme.secondaryText)
@@ -257,10 +257,10 @@ struct PillButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(primary ? Color.black : Color.white)
+            .foregroundStyle(Color.white)
             .padding(.horizontal, 14)
             .padding(.vertical, 7)
-            .background(Capsule().fill(primary ? Theme.lamp : Theme.raisedFill))
+            .background(Capsule().fill(primary ? AnyShapeStyle(LinearGradient(colors: [Theme.accent, Theme.fuchsia], startPoint: .leading, endPoint: .trailing)) : AnyShapeStyle(Theme.raisedFill)))
             .opacity(configuration.isPressed ? 0.75 : 1)
     }
 }

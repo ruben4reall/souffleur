@@ -127,6 +127,7 @@ public final class PrompterController {
     private func beginAfterCountdown() {
         countdown?.cancel()
         guard Preferences.countdown else { return begin() }
+        presentation?.glow(0.9)
         countdown = Task { [weak self] in
             for number in [3, 2, 1] {
                 self?.state.phase = .countdown(number)
@@ -142,6 +143,7 @@ public final class PrompterController {
         countdown = nil
         state.phase = .rolling
         rollingSince = Date()
+        updateGlow()
         recorder = TakeRecorder(totalWords: script.words.count, start: Date())
         startClock()
         switch state.mode {
@@ -167,6 +169,7 @@ public final class PrompterController {
                 heard.append(word)
                 self.state.level = Float.random(in: 0.45...0.85)
                 self.state.isSpeaking = true
+                self.updateGlow()
                 self.heard(heard.suffix(10).joined(separator: " "), final: nil)
             }
         }
@@ -190,6 +193,7 @@ public final class PrompterController {
         if let rollingSince { elapsedBefore += Date().timeIntervalSince(rollingSince) }
         rollingSince = nil
         presentation?.text.setSpeed(0, eased: true)
+        updateGlow()
         onChange?()
     }
 
@@ -198,7 +202,24 @@ public final class PrompterController {
         state.phase = .rolling
         rollingSince = Date()
         if state.mode == .auto { presentation?.text.setSpeed(autoSpeed, eased: true) }
+        updateGlow()
         onChange?()
+    }
+
+    /// The stage light: bright during the countdown, breathing with the voice while listening, steady while
+    /// rolling on its own, low when paused.
+    private func updateGlow() {
+        let intensity: CGFloat = switch state.phase {
+        case .idle: 0
+        case .countdown: 0.9
+        case .paused: 0.18
+        case .finished: 0.7
+        case .rolling:
+            state.mode.listens
+                ? 0.42 + (state.isSpeaking ? 0.58 * min(1, CGFloat(state.level) * 1.4) : 0)
+                : 0.55
+        }
+        presentation?.glow(intensity)
     }
 
     public func restart() {
@@ -382,6 +403,7 @@ public final class PrompterController {
         state.phase = .finished
         state.progress = 1
         state.remaining = 0
+        updateGlow()
         onChange?()
         autoClose = Task { [weak self] in
             try? await Task.sleep(for: .seconds(12))
@@ -421,6 +443,7 @@ public final class PrompterController {
         case .level(let level, let speaking):
             state.level = level
             state.isSpeaking = speaking
+            updateGlow()
             if state.mode == .pace, state.phase == .rolling {
                 presentation?.text.setSpeed(speaking ? autoSpeed : 0, eased: true)
             }

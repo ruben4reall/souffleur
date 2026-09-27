@@ -15,13 +15,16 @@ esac
 command -v xcodegen >/dev/null || { echo "XcodeGen is missing: brew install xcodegen" >&2; exit 1; }
 xcodegen generate --quiet
 SIGNING=(ENABLE_HARDENED_RUNTIME=NO)
+# A development build only needs this Mac's architecture, and no index: smaller and faster.
+LEAN=()
+if [ "$CONFIGURATION" = Debug ]; then LEAN=(ARCHS="$(uname -m)" ONLY_ACTIVE_ARCH=YES COMPILER_INDEX_STORE_ENABLE=NO); fi
 if [ -n "${SOUFFLEUR_TEAM_ID:-}" ]; then
   SIGNING=(-allowProvisioningUpdates CODE_SIGN_STYLE=Automatic DEVELOPMENT_TEAM="$SOUFFLEUR_TEAM_ID" CODE_SIGN_IDENTITY="Apple Development")
 fi
 mkdir -p .build/xcode
 LOG=.build/xcode/build.log
 xcodebuild -project Souffleur.xcodeproj -scheme Souffleur -configuration "$CONFIGURATION" -destination 'generic/platform=macOS' \
-  -derivedDataPath .build/xcode -clonedSourcePackagesDirPath .build/spm ${SIGNING[@]+"${SIGNING[@]}"} build > "$LOG" 2>&1 \
+  -derivedDataPath .build/xcode -clonedSourcePackagesDirPath .build/spm ${SIGNING[@]+"${SIGNING[@]}"} ${LEAN[@]+"${LEAN[@]}"} build > "$LOG" 2>&1 \
   || { grep -E "error:" "$LOG" | head -20 >&2; tail -n 20 "$LOG" >&2; exit 1; }
 APP=".build/xcode/Build/Products/$CONFIGURATION/Souffleur.app"
 codesign --verify --strict "$APP"

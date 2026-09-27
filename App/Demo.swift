@@ -7,7 +7,7 @@ import SouffleurShell
 ///   -SouffleurDemo notch|floating|fullScreen   opens the prompter on the welcome script
 ///   -SouffleurDemoVoice YES                    reads it aloud in voice follow, from a scripted transcript
 ///   -SouffleurDemoStop <word>                  stops reading at that word, to capture a take in progress
-///   -SouffleurSettings <pane>                  opens the settings
+///   -SouffleurDemoHover YES                    shows the controls, as when the pointer rests on the prompter
 @MainActor
 enum Demo {
     static func runIfAsked(_ app: Souffleur) {
@@ -18,6 +18,9 @@ enum Demo {
         app.prompter.demoStop = defaults.object(forKey: "SouffleurDemoStop") != nil ? defaults.integer(forKey: "SouffleurDemoStop") : nil
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             app.prompt(text: app.store.documents.first(where: { $0.text.hasPrefix("# Welcome to Souffleur") })?.text ?? "", title: "Welcome to Souffleur")
+        }
+        if defaults.bool(forKey: "SouffleurDemoHover") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4) { app.prompter.state.isHovering = true }
         }
     }
 }

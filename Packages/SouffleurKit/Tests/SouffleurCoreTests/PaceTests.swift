@@ -103,6 +103,15 @@ struct NotchGeometryTests {
         #expect(layout.textFrame.minY == open.gap)
     }
 
+    @Test func theRimLeavesOutTheEdgeAgainstTheScreen() {
+        let hanging = PrompterShape(width: 200, height: 100, earRadius: 10, cornerRadius: 20)
+        let rim = PrompterPath.rim(hanging, centerX: 300)
+        // Open: it starts at the left ear on the top edge and ends at the right one.
+        #expect(rim.currentPoint == CGPoint(x: 410, y: 0))
+        let floating = PrompterShape(width: 200, height: 100, earRadius: 0, cornerRadius: 20, gap: 30)
+        #expect(PrompterPath.rim(floating, centerX: 300).boundingBoxOfPath == PrompterPath.make(floating, centerX: 300).boundingBoxOfPath)
+    }
+
     @Test func theOutlineIsClosedAndCentred() {
         let shape = PrompterShape(width: 200, height: 100, earRadius: 10, cornerRadius: 20)
         let box = PrompterPath.make(shape, centerX: 300).boundingBoxOfPath

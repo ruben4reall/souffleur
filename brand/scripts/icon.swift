@@ -1,5 +1,5 @@
-// brand/scripts/icon.swift: draws the Souffleur icon, a slab of black glass with the notch at its top edge and the
-// script beneath it, the line being read lit by the warm lamp of a prompter's box.
+// brand/scripts/icon.swift: draws the Souffleur icon, a slab of black glass with the notch at its top edge ringed
+// by stage light, violet running into fuchsia, and the script beneath it, the line being read lit by the same light.
 // Usage: swift brand/scripts/icon.swift <out.png> [size]
 import AppKit
 
@@ -13,13 +13,14 @@ func c(_ hex: UInt32, _ a: CGFloat = 1) -> CGColor {
 func g(_ colors: [CGColor], _ l: [CGFloat]) -> CGGradient { CGGradient(colorsSpace: CGColorSpace(name: CGColorSpace.sRGB), colors: colors as CFArray, locations: l)! }
 
 /// The notch with its concave ears, hanging from `top` (y up).
-func notch(cx: CGFloat, top: CGFloat, w: CGFloat, h: CGFloat, ear: CGFloat, r: CGFloat) -> CGPath {
+func notch(cx: CGFloat, top: CGFloat, w: CGFloat, h: CGFloat, ear: CGFloat, r: CGFloat, closed: Bool = true) -> CGPath {
     let L = cx - w / 2, R = cx + w / 2, B = top - h, reach = min(r * 1.28, h - ear, w / 2), hd = reach * 0.36
     let p = CGMutablePath()
     p.move(to: CGPoint(x: L - ear, y: top)); p.addQuadCurve(to: CGPoint(x: L, y: top - ear), control: CGPoint(x: L, y: top))
     p.addLine(to: CGPoint(x: L, y: B + reach)); p.addCurve(to: CGPoint(x: L + reach, y: B), control1: CGPoint(x: L, y: B + hd), control2: CGPoint(x: L + hd, y: B))
     p.addLine(to: CGPoint(x: R - reach, y: B)); p.addCurve(to: CGPoint(x: R, y: B + reach), control1: CGPoint(x: R - hd, y: B), control2: CGPoint(x: R, y: B + hd))
-    p.addLine(to: CGPoint(x: R, y: top - ear)); p.addQuadCurve(to: CGPoint(x: R + ear, y: top), control: CGPoint(x: R, y: top)); p.closeSubpath()
+    p.addLine(to: CGPoint(x: R, y: top - ear)); p.addQuadCurve(to: CGPoint(x: R + ear, y: top), control: CGPoint(x: R, y: top))
+    if closed { p.closeSubpath() }
     return p
 }
 
@@ -43,15 +44,15 @@ ctx.drawLinearGradient(g([c(0x26262A), c(0x111113), c(0x050506)], [0, 0.5, 1]), 
 // A broad, soft reflection from the upper left, like polished glass.
 ctx.drawLinearGradient(g([c(0xFFFFFF, 0.06), c(0xFFFFFF, 0)], [0, 1]), start: CGPoint(x: 100, y: 924), end: CGPoint(x: 520, y: 420), options: [])
 
-// The lamp: warm light pouring from under the notch onto the glass.
+// Stage light pouring from under the notch onto the glass.
 let notchTop: CGFloat = 924, notchHeight: CGFloat = 132
-ctx.drawRadialGradient(g([c(0xFFB447, 0.34), c(0xFF9A2E, 0.12), c(0xFF9A2E, 0)], [0, 0.45, 1]),
+ctx.drawRadialGradient(g([c(0x8F6BFF, 0.36), c(0xFF5AC8, 0.12), c(0xFF5AC8, 0)], [0, 0.5, 1]),
                        startCenter: CGPoint(x: 512, y: notchTop - notchHeight), startRadius: 0,
                        endCenter: CGPoint(x: 512, y: notchTop - notchHeight), endRadius: 470, options: [])
 
-// The script: the line being read in the lamp's colour, the lines to come fading away below it.
+// The script: the line being read in stage light, the lines to come fading away below it.
 let lines: [(y: CGFloat, w: CGFloat, color: CGColor, glow: Bool)] = [
-    (672, 548, c(0xFFB447), true),
+    (672, 548, c(0xB58CFF), true),
     (560, 624, c(0xF4F4F7, 0.82), false),
     (448, 480, c(0xF4F4F7, 0.5), false),
     (336, 566, c(0xF4F4F7, 0.24), false),
@@ -59,27 +60,42 @@ let lines: [(y: CGFloat, w: CGFloat, color: CGColor, glow: Bool)] = [
 ]
 for line in lines {
     ctx.saveGState()
-    if line.glow { ctx.setShadow(offset: .zero, blur: 46, color: c(0xFF9A2E, 0.85)) }
+    if line.glow { ctx.setShadow(offset: .zero, blur: 46, color: c(0xB35CFF, 0.9)) }
     ctx.addPath(capsule(cx: 512, cy: line.y, w: line.w, h: 50))
     ctx.setFillColor(line.color)
     ctx.fillPath()
     ctx.restoreGState()
 }
-// A brighter heart on the lit line.
+// The lit line runs from violet into fuchsia, with a brighter top edge.
 ctx.saveGState()
 ctx.addPath(capsule(cx: 512, cy: 672, w: 548, h: 50)); ctx.clip()
-ctx.drawLinearGradient(g([c(0xFFE3B0, 0.9), c(0xFFB447, 0), c(0xFF8F2A, 0.35)], [0, 0.55, 1]), start: CGPoint(x: 512, y: 697), end: CGPoint(x: 512, y: 647), options: [])
+ctx.drawLinearGradient(g([c(0x8F6BFF), c(0xC05CFF), c(0xFF5AC8)], [0, 0.5, 1]), start: CGPoint(x: 238, y: 672), end: CGPoint(x: 786, y: 672), options: [])
+ctx.drawLinearGradient(g([c(0xFFFFFF, 0.45), c(0xFFFFFF, 0)], [0, 1]), start: CGPoint(x: 512, y: 697), end: CGPoint(x: 512, y: 668), options: [])
 ctx.restoreGState()
 
-// The notch itself: solid black, recessed, with a warm rim where the lamp catches its lower edge.
+// The notch itself: solid black, recessed, ringed with the glow the app draws around it.
 let window = notch(cx: 512, top: notchTop, w: 318, h: notchHeight, ear: 28, r: 58)
 ctx.saveGState()
 ctx.setShadow(offset: CGSize(width: 0, height: -6), blur: 22, color: c(0x000000, 0.9))
 ctx.addPath(window); ctx.setFillColor(c(0x000000)); ctx.fillPath()
 ctx.restoreGState()
-ctx.saveGState(); ctx.addPath(window); ctx.setLineWidth(5); ctx.replacePathWithStrokedPath(); ctx.clip()
-ctx.drawLinearGradient(g([c(0xFFFFFF, 0), c(0xFFC878, 0.25), c(0xFFD9A0, 0.9)], [0, 0.55, 1]), start: CGPoint(x: 512, y: notchTop), end: CGPoint(x: 512, y: notchTop - notchHeight), options: [])
+let rim = notch(cx: 512, top: notchTop, w: 318, h: notchHeight, ear: 28, r: 58, closed: false)
+ctx.saveGState()
+ctx.addPath(bodyPath); ctx.clip()
+for (width, blur, alpha) in [(CGFloat(16), CGFloat(30), CGFloat(0.55)), (7, 10, 0.9), (4, 0, 1)] {
+    ctx.saveGState()
+    ctx.addPath(rim); ctx.setLineWidth(width); ctx.setLineJoin(.round); ctx.replacePathWithStrokedPath()
+    if blur > 0 {
+        // A blurred copy: stroke into a layer and let the shadow carry the light.
+        ctx.setShadow(offset: .zero, blur: blur, color: c(0xB35CFF, alpha))
+    }
+    ctx.clip()
+    ctx.drawLinearGradient(g([c(0x8F6BFF, alpha), c(0xC05CFF, alpha), c(0xFF5AC8, alpha), c(0xFF8FB0, alpha)], [0, 0.4, 0.8, 1]),
+                           start: CGPoint(x: 512 - 190, y: notchTop), end: CGPoint(x: 512 + 190, y: notchTop - notchHeight), options: [])
+    ctx.restoreGState()
+}
 ctx.restoreGState()
+
 // The camera, a dark lens in the notch.
 ctx.saveGState()
 ctx.addEllipse(in: CGRect(x: 512 - 17, y: notchTop - 70 - 17, width: 34, height: 34))

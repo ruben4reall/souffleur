@@ -16,8 +16,8 @@ final class PrompterPanel: NSPanel {
         hidesOnDeactivate = false
         isReleasedWhenClosed = false
         animationBehavior = .none
-        // Above the menu bar, on every Space, and over full screen apps.
-        level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 3)
+        // Above the menu bar and other notch apps, on every Space, and over full screen apps.
+        level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 4)
         collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
     }
 
@@ -60,6 +60,8 @@ protocol PrompterPresentation: AnyObject {
     func dismiss(completion: @escaping @MainActor () -> Void)
     /// Re-reads the settings that change the window (size, capture, screen).
     func refresh()
+    /// The stage light around the prompter, from 0 (off) to 1.
+    func glow(_ intensity: CGFloat)
 }
 
 enum Screens {

@@ -11,14 +11,19 @@ public struct SettingsView: View {
 
     public var body: some View {
         TabView {
-            GeneralPane(app: app).tabItem { Label(String(localized: "General", bundle: .module), systemImage: "gearshape") }
-            PrompterPane(app: app).tabItem { Label(String(localized: "Prompter", bundle: .module), systemImage: "text.alignleft") }
-            VoicePane().tabItem { Label(String(localized: "Voice", bundle: .module), systemImage: "waveform") }
-            ControlsPane(app: app).tabItem { Label(String(localized: "Controls", bundle: .module), systemImage: "command") }
-            AboutPane().tabItem { Label(String(localized: "About", bundle: .module), systemImage: "info.circle") }
+            GeneralPane(app: app).frame(height: 400)
+                .tabItem { Label(String(localized: "General", bundle: .module), systemImage: "gearshape") }
+            PrompterPane(app: app).frame(height: 660)
+                .tabItem { Label(String(localized: "Prompter", bundle: .module), systemImage: "text.alignleft") }
+            VoicePane().frame(height: 500)
+                .tabItem { Label(String(localized: "Voice", bundle: .module), systemImage: "waveform") }
+            ControlsPane(app: app).frame(height: 620)
+                .tabItem { Label(String(localized: "Controls", bundle: .module), systemImage: "command") }
+            AboutPane().frame(height: 360)
+                .tabItem { Label(String(localized: "About", bundle: .module), systemImage: "info.circle") }
         }
-        .frame(width: 560)
-        .scenePadding()
+        .frame(width: 580)
+        .tint(Theme.accent)
     }
 }
 
@@ -66,15 +71,15 @@ private struct GeneralPane: View {
 private struct PrompterPane: View {
     let app: Souffleur
     @AppStorage(Preferences.Key.placement) private var placement = PrompterPlacement.notch.rawValue
-    @AppStorage(Preferences.Key.notchWidth) private var notchWidth = 540.0
-    @AppStorage(Preferences.Key.notchLines) private var notchLines = 4.0
-    @AppStorage(Preferences.Key.floatingWidth) private var floatingWidth = 620.0
-    @AppStorage(Preferences.Key.floatingHeight) private var floatingHeight = 240.0
+    @AppStorage(Preferences.Key.notchWidth) private var notchWidth = 380.0
+    @AppStorage(Preferences.Key.notchLines) private var notchLines = 3.0
+    @AppStorage(Preferences.Key.floatingWidth) private var floatingWidth = 520.0
+    @AppStorage(Preferences.Key.floatingHeight) private var floatingHeight = 200.0
     @AppStorage(Preferences.Key.fullScreenDisplay) private var fullScreenDisplay = ""
     @AppStorage(Preferences.Key.fullScreenFontSize) private var fullScreenFontSize = 64.0
     @AppStorage(Preferences.Key.font) private var font = PrompterFont.system.rawValue
-    @AppStorage(Preferences.Key.fontSize) private var fontSize = 26.0
-    @AppStorage(Preferences.Key.lineSpacing) private var lineSpacing = 1.3
+    @AppStorage(Preferences.Key.fontSize) private var fontSize = 19.0
+    @AppStorage(Preferences.Key.lineSpacing) private var lineSpacing = 1.28
     @AppStorage(Preferences.Key.alignment) private var alignment = "center"
     @AppStorage(Preferences.Key.theme) private var theme = PrompterTheme.night.rawValue
     @AppStorage(Preferences.Key.dimsReadWords) private var dimsReadWords = true
@@ -92,7 +97,7 @@ private struct PrompterPane: View {
                 .pickerStyle(.segmented)
                 switch PrompterPlacement(rawValue: placement) ?? .notch {
                 case .notch:
-                    slider(String(localized: "Width", bundle: .module), value: $notchWidth, in: 420...760, step: 10, unit: "pt")
+                    slider(String(localized: "Width", bundle: .module), value: $notchWidth, in: 340...760, step: 10, unit: "pt")
                     Stepper(value: $notchLines, in: 2...8) {
                         LabeledContent(String(localized: "Lines", bundle: .module), value: "\(Int(notchLines))")
                     }
@@ -114,7 +119,7 @@ private struct PrompterPane: View {
                 Picker(String(localized: "Font", bundle: .module), selection: $font) {
                     ForEach(PrompterFont.allCases) { Text($0.title).tag($0.rawValue) }
                 }
-                slider(String(localized: "Size", bundle: .module), value: $fontSize, in: 16...48, step: 1, unit: "pt")
+                slider(String(localized: "Size", bundle: .module), value: $fontSize, in: 14...48, step: 1, unit: "pt")
                 slider(String(localized: "Line spacing", bundle: .module), value: $lineSpacing, in: 1.0...1.8, step: 0.05, unit: "×")
                 Picker(String(localized: "Alignment", bundle: .module), selection: $alignment) {
                     Text("Centered", bundle: .module).tag("center")
@@ -182,7 +187,7 @@ private struct VoicePane: View {
                         HStack(spacing: 12) {
                             Image(systemName: option.symbol)
                                 .font(.system(size: 15, weight: .semibold))
-                                .foregroundStyle(mode == option.rawValue ? Theme.lamp : .secondary)
+                                .foregroundStyle(mode == option.rawValue ? Theme.accent : .secondary)
                                 .frame(width: 24)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(option.title).font(.system(size: 13, weight: .semibold))
@@ -190,7 +195,7 @@ private struct VoicePane: View {
                             }
                             Spacer()
                             if mode == option.rawValue {
-                                Image(systemName: "checkmark").foregroundStyle(Theme.lamp).fontWeight(.bold)
+                                Image(systemName: "checkmark").foregroundStyle(Theme.accent).fontWeight(.bold)
                             }
                         }
                         .contentShape(Rectangle())
@@ -298,7 +303,7 @@ private struct RemoteCard: View {
                         .textSelection(.enabled)
                     Text(app.remote.connectedCount == 0 ? String(localized: "No phone connected", bundle: .module) : String(localized: "\(app.remote.connectedCount) connected", bundle: .module))
                         .font(.system(size: 12))
-                        .foregroundStyle(app.remote.connectedCount == 0 ? Color.secondary : Theme.lamp)
+                        .foregroundStyle(app.remote.connectedCount == 0 ? Color.secondary : Theme.accent)
                     Button(String(localized: "New Pairing Code", bundle: .module)) {
                         Preferences.renewRemoteToken()
                         app.remote.stop()

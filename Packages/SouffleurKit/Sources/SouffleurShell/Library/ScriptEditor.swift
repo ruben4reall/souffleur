@@ -32,7 +32,7 @@ struct ScriptEditor: NSViewRepresentable {
         editor.drawsBackground = false
         editor.font = Markup.body
         editor.textColor = .labelColor
-        editor.insertionPointColor = Theme.lampNS
+        editor.insertionPointColor = Theme.accentNS
         editor.typingAttributes = Markup.baseAttributes
         editor.delegate = context.coordinator
         editor.string = text
@@ -115,7 +115,7 @@ enum Markup {
     private static let cue = try! NSRegularExpression(pattern: "\\[[^\\]\\n]+\\]")
     private static let emphasis = try! NSRegularExpression(pattern: "\\*\\*[^*\\n]+\\*\\*")
     static let cueColor = NSColor(name: nil) { appearance in
-        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? Theme.lampNS : NSColor(srgbRed: 0.72, green: 0.42, blue: 0.02, alpha: 1)
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? Theme.highlightNS : NSColor(srgbRed: 0.42, green: 0.29, blue: 0.88, alpha: 1)
     }
 
     static func apply(to textView: NSTextView) {

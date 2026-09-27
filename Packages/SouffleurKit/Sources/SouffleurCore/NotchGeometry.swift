@@ -83,7 +83,7 @@ public struct PrompterLayout: Equatable, Sendable {
     public func shape(open: Bool) -> PrompterShape {
         if notch.isHardware {
             return open
-                ? PrompterShape(width: max(width, notch.width + 160), height: notch.height + textHeight, earRadius: 14, cornerRadius: 32)
+                ? PrompterShape(width: max(width, notch.width + 150), height: notch.height + textHeight, earRadius: 12, cornerRadius: 26)
                 : PrompterShape(width: notch.width, height: notch.height, earRadius: 4, cornerRadius: 9)
         }
         let gap = notch.height + Self.floatingGap
@@ -120,6 +120,16 @@ public enum PrompterPath {
     /// Every shape is built from the same sequence of segments, so Core Animation can morph one into another. The
     /// lower corners ease into the straight edges (continuous curvature), softer than a circular arc.
     public static func make(_ shape: PrompterShape, centerX: CGFloat) -> CGPath {
+        make(shape, centerX: centerX, closed: true)
+    }
+
+    /// The outline without its top edge when it hangs from the screen: the rim the glow runs along. A floating
+    /// shape has no edge against the screen, so its rim is the whole outline.
+    public static func rim(_ shape: PrompterShape, centerX: CGFloat) -> CGPath {
+        make(shape, centerX: centerX, closed: shape.isFloating)
+    }
+
+    private static func make(_ shape: PrompterShape, centerX: CGFloat, closed: Bool) -> CGPath {
         let ear = shape.isFloating ? 0 : max(0, min(shape.earRadius, shape.height / 3))
         let left = centerX - shape.width / 2
         let right = centerX + shape.width / 2
@@ -150,7 +160,7 @@ public enum PrompterPath {
             path.addLine(to: CGPoint(x: right, y: top + ear))
             path.addQuadCurve(to: CGPoint(x: right + ear, y: top), control: CGPoint(x: right, y: top))
         }
-        path.closeSubpath()
+        if closed { path.closeSubpath() }
         return path
     }
 

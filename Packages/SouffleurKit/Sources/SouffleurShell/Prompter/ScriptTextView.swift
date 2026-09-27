@@ -49,6 +49,8 @@ final class ScriptTextView: NSView {
     var horizontalInset: CGFloat = 26 { didSet { needsLayout = true } }
     /// Height of the fades at the top and bottom edges.
     var fadeTop: CGFloat = 6
+    /// A band at the top where nothing shows at all, so a line already read never peeks out under the camera.
+    var hiddenTop: CGFloat = 0
     var fadeBottom: CGFloat = 28
     var showsBand = false { didSet { band.isHidden = !showsBand } }
 
@@ -121,7 +123,7 @@ final class ScriptTextView: NSView {
         band.isHidden = true
         layer?.addSublayer(band)
 
-        fade.colors = [NSColor.clear.cgColor, NSColor.black.cgColor, NSColor.black.cgColor, NSColor.clear.cgColor]
+        fade.colors = [NSColor.clear.cgColor, NSColor.clear.cgColor, NSColor.black.cgColor, NSColor.black.cgColor, NSColor.clear.cgColor]
 
         layer?.mask = fade
     }
@@ -183,7 +185,9 @@ final class ScriptTextView: NSView {
         CATransaction.setDisableActions(true)
         fade.frame = bounds
         let height = max(bounds.height, 1)
-        fade.locations = [0, NSNumber(value: Double(fadeTop / height)), NSNumber(value: Double(1 - fadeBottom / height)), 1]
+        let hidden = min(hiddenTop, height / 2)
+        fade.locations = [0, NSNumber(value: Double(hidden / height)), NSNumber(value: Double((hidden + fadeTop) / height)),
+                          NSNumber(value: Double(1 - fadeBottom / height)), 1]
         CATransaction.commit()
         applyMirror()
     }
@@ -263,7 +267,7 @@ final class ScriptTextView: NSView {
             manager.addTemporaryAttribute(.foregroundColor, value: palette.read, forCharacterRange: NSRange(location: 0, length: clamped))
         }
         if let next, NSMaxRange(next) <= length {
-            manager.addTemporaryAttribute(.foregroundColor, value: Theme.lampNS, forCharacterRange: next)
+            manager.addTemporaryAttribute(.foregroundColor, value: Theme.highlightNS, forCharacterRange: next)
         }
         readLocation = clamped
         nextWordRange = next

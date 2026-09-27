@@ -1,14 +1,29 @@
 import AppKit
 import SwiftUI
 
-/// Souffleur's design tokens. The prompter is black like the notch it hangs from; one accent, Lamp, the warm light
-/// of a prompter's box, marks what belongs to Souffleur: the place in the script, the live level, the main button.
+/// Souffleur's design tokens. The prompter is black like the notch it hangs from; its signature is stage light, a
+/// violet that runs into fuchsia, which marks what belongs to Souffleur: the glow around the notch, the next word,
+/// the voice, the main button.
 public enum Theme {
-    public static let lamp = Color(red: 1, green: 0.706, blue: 0.278)
-    public static let lampNS = NSColor(srgbRed: 1, green: 0.706, blue: 0.278, alpha: 1)
-    /// The deeper amber of gradients and pressed states.
-    public static let ember = Color(red: 0.941, green: 0.541, blue: 0.141)
+    /// Spotlight violet, the accent: buttons, selection, the level meter.
+    public static let accent = Color(red: 0.561, green: 0.420, blue: 1)
+    public static let accentNS = NSColor(srgbRed: 0.561, green: 0.420, blue: 1, alpha: 1)
+    /// The other end of the stage light, for gradients.
+    public static let fuchsia = Color(red: 1, green: 0.353, blue: 0.784)
+    /// A light violet that reads well on black: the next word, figures on the prompter.
+    public static let highlight = Color(red: 0.804, green: 0.725, blue: 1)
+    public static let highlightNS = NSColor(srgbRed: 0.804, green: 0.725, blue: 1, alpha: 1)
     public static let stage = Color(red: 0.027, green: 0.027, blue: 0.031)
+
+    /// The stage light running around the notch: violet, purple, fuchsia, a warm pink, and back.
+    static let glowColors: [CGColor] = [
+        CGColor(srgbRed: 0.431, green: 0.357, blue: 1, alpha: 1),
+        CGColor(srgbRed: 0.643, green: 0.361, blue: 1, alpha: 1),
+        CGColor(srgbRed: 1, green: 0.353, blue: 0.784, alpha: 1),
+        CGColor(srgbRed: 1, green: 0.561, blue: 0.690, alpha: 1),
+        CGColor(srgbRed: 0.643, green: 0.361, blue: 1, alpha: 1),
+        CGColor(srgbRed: 0.431, green: 0.357, blue: 1, alpha: 1),
+    ]
 
     // The system's label colours on a dark background.
     static let secondaryText = Color(red: 0.92, green: 0.92, blue: 0.96).opacity(0.6)
@@ -30,11 +45,11 @@ public enum Theme {
         switch theme {
         case .night:
             Palette(background: .black, text: NSColor(white: 0.97, alpha: 1), read: NSColor(white: 0.97, alpha: 0.34),
-                    heading: NSColor(white: 0.97, alpha: 0.5), cue: lampNS.withAlphaComponent(0.85), band: NSColor(white: 1, alpha: 0.06))
+                    heading: NSColor(white: 0.97, alpha: 0.5), cue: highlightNS.withAlphaComponent(0.8), band: NSColor(white: 1, alpha: 0.06))
         case .paper:
             Palette(background: NSColor(srgbRed: 0.97, green: 0.96, blue: 0.93, alpha: 1), text: NSColor(white: 0.08, alpha: 1),
                     read: NSColor(white: 0.08, alpha: 0.3), heading: NSColor(white: 0.08, alpha: 0.5),
-                    cue: NSColor(srgbRed: 0.78, green: 0.42, blue: 0.05, alpha: 1), band: NSColor(white: 0, alpha: 0.05))
+                    cue: NSColor(srgbRed: 0.42, green: 0.29, blue: 0.88, alpha: 1), band: NSColor(white: 0, alpha: 0.05))
         case .contrast:
             Palette(background: .black, text: NSColor(srgbRed: 1, green: 0.93, blue: 0.2, alpha: 1), read: NSColor(white: 1, alpha: 0.4),
                     heading: NSColor(white: 1, alpha: 0.7), cue: NSColor(srgbRed: 0.35, green: 0.85, blue: 1, alpha: 1), band: NSColor(white: 1, alpha: 0.1))

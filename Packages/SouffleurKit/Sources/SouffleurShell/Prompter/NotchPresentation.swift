@@ -11,6 +11,7 @@ final class NotchPresentation: PrompterPresentation {
     private let panel = PrompterPanel(movable: false)
     private let canvas = NotchCanvas()
     private let backdrop = ShapeView()
+    private let glow = GlowView()
     private let content = NSView()
     private let mask = CAShapeLayer()
     private var overlay: PassthroughHostingView<PrompterOverlay>?
@@ -26,6 +27,7 @@ final class NotchPresentation: PrompterPresentation {
         root.addSubview(canvas)
         canvas.wantsLayer = true
         canvas.addSubview(backdrop)
+        canvas.addSubview(glow)
         backdrop.shapeLayer.fillColor = NSColor.black.cgColor
         backdrop.shapeLayer.shadowColor = NSColor.black.cgColor
         backdrop.shapeLayer.shadowRadius = 12
@@ -48,7 +50,7 @@ final class NotchPresentation: PrompterPresentation {
             menuBarHeight: screen.frame.maxY - screen.visibleFrame.maxY
         )
         let style = PrompterStyle.current()
-        let textHeight = (style.lineHeight * CGFloat(Preferences.notchLines) + 26).rounded()
+        let textHeight = (style.lineHeight * CGFloat(Preferences.notchLines) + 16).rounded()
         let layout = PrompterLayout(notch: notch, width: Preferences.notchWidth, textHeight: textHeight)
         self.layout = layout
         panel.sharingType = Preferences.hiddenFromCapture ? .none : .readOnly
@@ -61,27 +63,33 @@ final class NotchPresentation: PrompterPresentation {
         let bounds = NSRect(origin: .zero, size: size)
         canvas.frame = bounds
         backdrop.frame = bounds
+        glow.frame = bounds
         content.frame = bounds
         mask.frame = bounds
         text.frame = flipped(layout.textFrame, in: size)
-        text.readingInset = 6
+        text.readingInset = 10
+        text.hiddenTop = 10
         text.fadeTop = 6
-        text.fadeBottom = 30
+        text.fadeBottom = 22
+        text.horizontalInset = 20
         text.showsBand = false
         installOverlays(layout: layout, size: size)
         let path = outline(open: isOpen)
+        let open = layout.shape(open: true)
+        glow.configure(center: CGPoint(x: size.width / 2, y: size.height - open.gap - open.height / 2))
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         backdrop.shapeLayer.path = path
         backdrop.shapeLayer.shadowPath = path
         mask.path = path
+        glow.rimLayers.forEach { $0.path = outline(open: isOpen, rim: true) }
         CATransaction.commit()
         canvas.trackedRect = flipped(layout.frameOfOpenShape, in: size)
     }
 
     private func installOverlays(layout: PrompterLayout, size: CGSize) {
         overlay?.removeFromSuperview()
-        let overlay = PassthroughHostingView(rootView: PrompterOverlay(state: state, showsStatusRow: !layout.notch.isHardware))
+        let overlay = PassthroughHostingView(rootView: PrompterOverlay(state: state, showsStatusRow: !layout.notch.isHardware, scale: 0.8))
         overlay.sizingOptions = []
         overlay.frame = text.frame
         let state = self.state
@@ -89,7 +97,7 @@ final class NotchPresentation: PrompterPresentation {
             guard let overlay else { return [] }
             if state.failure != nil || state.summary != nil { return [overlay.bounds] }
             guard state.isHovering else { return [] }
-            return [NSRect(x: overlay.bounds.midX - 110, y: 0, width: 220, height: 56)]
+            return [NSRect(x: overlay.bounds.midX - 90, y: 0, width: 180, height: 48)]
         }
         content.addSubview(overlay)
         self.overlay = overlay
@@ -119,32 +127,40 @@ final class NotchPresentation: PrompterPresentation {
         }
     }
 
+    func glow(_ intensity: CGFloat) {
+        glow.setIntensity(intensity)
+    }
+
     func dismiss(completion: @escaping @MainActor () -> Void) {
         isOpen = false
         state.isHovering = false
+        glow.setIntensity(0, duration: 0.15)
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.14
             content.animator().alphaValue = 0
         }
-        morph(open: false) { [weak self] in
-            self?.panel.orderOut(nil)
-            self?.text.halt()
+        // Held until the motion ends: the controller has already let go of this presentation.
+        morph(open: false) {
+            self.panel.orderOut(nil)
+            self.text.halt()
             completion()
         }
     }
 
     private func morph(open: Bool, completion: (@MainActor () -> Void)? = nil) {
         let path = outline(open: open)
+        let rim = outline(open: open, rim: true)
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         CATransaction.setCompletionBlock { MainActor.assumeIsolated { completion?() } }
-        for (layer, key) in [(backdrop.shapeLayer, "path"), (backdrop.shapeLayer, "shadowPath"), (mask, "path")] {
+        let rims = glow.rimLayers.map { ($0, "path", rim) }
+        for (layer, key, target) in [(backdrop.shapeLayer, "path", path), (backdrop.shapeLayer, "shadowPath", path), (mask, "path", path)] + rims {
             let animation = Motion.spring(open: open)
             animation.keyPath = key
             let current = key == "path" ? (layer.presentation()?.path ?? layer.path) : (layer.presentation()?.shadowPath ?? layer.shadowPath)
             animation.fromValue = current
-            animation.toValue = path
-            if key == "path" { layer.path = path } else { layer.shadowPath = path }
+            animation.toValue = target
+            if key == "path" { layer.path = target } else { layer.shadowPath = target }
             layer.add(animation, forKey: key)
         }
         let shadow = Motion.spring(open: open)
@@ -156,11 +172,12 @@ final class NotchPresentation: PrompterPresentation {
         CATransaction.commit()
     }
 
-    private func outline(open: Bool) -> CGPath {
+    private func outline(open: Bool, rim: Bool = false) -> CGPath {
         guard let layout else { return CGMutablePath() }
         let size = layout.canvasSize
         var flip = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: size.height)
-        let path = PrompterPath.make(layout.shape(open: open), centerX: size.width / 2)
+        let shape = layout.shape(open: open)
+        let path = rim ? PrompterPath.rim(shape, centerX: size.width / 2) : PrompterPath.make(shape, centerX: size.width / 2)
         return path.copy(using: &flip) ?? path
     }
 

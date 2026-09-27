@@ -34,7 +34,7 @@ public struct LibraryView: View {
         .overlay {
             if isTargeted {
                 RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(Theme.lamp, style: StrokeStyle(lineWidth: 3, dash: [8, 6]))
+                    .strokeBorder(Theme.accent, style: StrokeStyle(lineWidth: 3, dash: [8, 6]))
                     .padding(6)
                     .allowsHitTesting(false)
             }
@@ -98,7 +98,7 @@ public struct LibraryView: View {
             } actions: {
                 Button(String(localized: "New Script", bundle: .module)) { store.create() }
                     .buttonStyle(.borderedProminent)
-                    .tint(Theme.lamp)
+                    .tint(Theme.accent)
             }
         }
     }
@@ -145,8 +145,8 @@ public struct LibraryView: View {
                     .padding(.horizontal, 4)
             }
             .buttonStyle(.borderedProminent)
-            .tint(Theme.lamp)
-            .foregroundStyle(.black)
+            .tint(Theme.accent)
+            .foregroundStyle(.white)
             .disabled(!app.canPrompt)
             .keyboardShortcut(.return, modifiers: .command)
             .help(String(localized: "Open the prompter (⌘↩, or ⌃⌥⌘P from any app)", bundle: .module))
@@ -172,7 +172,7 @@ public struct LibraryView: View {
                 Label {
                     Text("Last take: \(lastSummary)", bundle: .module)
                 } icon: {
-                    Image(systemName: "record.circle").foregroundStyle(Theme.lamp)
+                    Image(systemName: "record.circle").foregroundStyle(Theme.accent)
                 }
             }
         }
