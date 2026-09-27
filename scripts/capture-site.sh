@@ -38,6 +38,17 @@ run -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES -SouffleurDem
 run -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES; sleep 2.3; shoot_panel countdown
 run -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES; sleep 50; shoot_panel summary
 
+echo "Reel:"
+# A take filmed: the prompter window alone, laid on the desktop picture, for the website's video.
+if [ -n "${SOUFFLEUR_DESKTOP:-}" ]; then
+  [ -x .build/record-reel ] || swiftc -O -o .build/record-reel scripts/record-reel.swift
+  run -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES
+  id=""; for _ in $(seq 1 60); do id=$(panel); [ -n "$id" ] && break; sleep 0.1; done
+  mkdir -p site/assets/video
+  .build/record-reel "$id" "$SOUFFLEUR_DESKTOP" site/assets/video/action.mp4 17 "$OUT/action-poster.png" && echo "  action.mp4"
+  cwebp -quiet -q 86 "$OUT/action-poster.png" -o site/assets/video/action-poster.webp
+fi
+
 echo "Cards:"
 run -SouffleurDemo floating -scrollMode voice -SouffleurDemoVoice YES -SouffleurDemoStop 22; sleep "$(at 22)"; shoot_panel floating || true
 [ -f "$OUT/floating.png" ] || { id=$(.build/window-id Souffleur all | awk '$6!=0' | head -1 | cut -d' ' -f1); screencapture -x -o -l "$id" "$OUT/floating.png"; echo "  floating"; }
