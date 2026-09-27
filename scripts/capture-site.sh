@@ -15,7 +15,8 @@ mkdir -p .build
 [ -x .build/compose ] || swiftc -O -o .build/compose scripts/compose.swift
 APP="$BUNDLE/Contents/MacOS/Souffleur"
 
-run() { pkill -x Souffleur 2>/dev/null || true; sleep 0.8; ("$APP" -SouffleurSkipWelcome YES -hiddenFromCapture NO -AppleLanguages '(en)' -AppleLocale en_US "$@" >/dev/null 2>&1 &) }
+# A release build opened from its disk image offers to move itself to Applications: not for photographs.
+run() { pkill -x Souffleur 2>/dev/null || true; sleep 0.8; ("$APP" -SouffleurSkipWelcome YES -declinedMoveToApplications YES -hiddenFromCapture NO -AppleLanguages '(en)' -AppleLocale en_US "$@" >/dev/null 2>&1 &) }
 panel() { .build/window-id Souffleur panel | head -1 | cut -d' ' -f1; }
 window() { .build/window-id Souffleur window | awk -v w="$1" '$6==0 && (w=="" || $4==w)' | head -1 | cut -d' ' -f1; }
 shoot_panel() { local id; id=$(panel); [ -n "$id" ] && screencapture -x -o -l "$id" "$OUT/$1.png" && echo "  $1"; }
@@ -26,7 +27,7 @@ at() { echo "1 + 2.4 + $1 * 0.4 + 1.2" | bc; }
 echo "Hero:"
 # The empty prompter, and the script as the prompter lays it out: the page scrolls one behind the other.
 run -SouffleurDemo notch -SouffleurDemoBlank YES -countdown NO; sleep 3.5; shoot_panel frame
-"$APP" -SouffleurSkipWelcome YES -SouffleurDemoStrip "$PWD/$OUT/strip.png" -AppleLanguages '(en)' >/dev/null 2>&1 || true
+"$APP" -SouffleurSkipWelcome YES -declinedMoveToApplications YES -SouffleurDemoStrip "$PWD/$OUT/strip.png" -AppleLanguages '(en)' >/dev/null 2>&1 || true
 echo "  strip"
 
 echo "Notch:"
@@ -47,6 +48,10 @@ if [ -n "${SOUFFLEUR_DESKTOP:-}" ]; then
   mkdir -p site/assets/video
   .build/record-reel "$id" "$SOUFFLEUR_DESKTOP" site/assets/video/action.mp4 17 "$OUT/action-poster.png" && echo "  action.mp4"
   cwebp -quiet -q 86 "$OUT/action-poster.png" -o site/assets/video/action-poster.webp
+  # The README's animation: the top of the screen from the filmed take, eight frames a second.
+  [ -x .build/reel-frames ] || swiftc -O -o .build/reel-frames scripts/reel-frames.swift
+  rm -rf "$OUT/reel" && .build/reel-frames site/assets/video/action.mp4 "$OUT/reel" 8 225 0 900 400 800 >/dev/null
+  img2webp -loop 0 -lossy -q 62 -d 125 "$OUT"/reel/frame-*.png -o docs/images/in-action.webp >/dev/null && echo "  in-action.webp"
 fi
 
 echo "Cards:"

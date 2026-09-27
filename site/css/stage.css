@@ -75,10 +75,10 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
 
 /* The prompter hangs from the bar, as it hangs from the notch: the real app, empty, with its script rolling. */
 .hero-light { position: absolute; top: 0; left: 0; right: 0; height: 34px; background-image: linear-gradient(to bottom, var(--violet) -100%, transparent 100%); opacity: .25; pointer-events: none; }
-.prompter { position: absolute; top: 0; left: 50%; width: 453px; height: 190px; margin: 0 0 0 -226.5px; z-index: 2; transform-origin: top center; }
-.prompter-frame { width: 453px; height: 190px; }
+.prompter { position: absolute; top: 0; left: 50%; width: 453px; height: 180px; margin: 0 0 0 -226.5px; z-index: 2; transform-origin: top center; }
+.prompter-frame { width: 453px; height: 180px; }
 /* The text area of the prompter, exactly where the app draws it, with the app's own fades. */
-.prompter-text { position: absolute; left: 46.5px; top: 32px; width: 360px; height: 134px; overflow: hidden;
+.prompter-text { position: absolute; left: 46.5px; top: 22px; width: 360px; height: 134px; overflow: hidden;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 52.5%, transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 52.5%, transparent 100%); }
 .prompter-track { animation: roll 48s linear infinite; will-change: transform; }
@@ -162,7 +162,10 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
 .mock-window img { position: relative; border-radius: 12px; box-shadow: 0 10px 30px rgba(20, 0, 60, .5); }
 .mock-notch { aspect-ratio: 575 / 360; background: #0b0b0e; }
 .mock-desktop { position: absolute; top: 0; left: 50%; width: 168%; max-width: none; transform: translateX(-50%); }
-.mock-prompter { position: absolute; top: 0; left: 50%; width: 50.33%; transform: translateX(-50%); }
+/* The prompter hangs 32 points below the top of the screen, under the notch: 32 of 1512 points, at 168% of the width. */
+.mock-prompter { position: absolute; top: 0; left: 50%; z-index: 2; width: 50.33%; margin-top: 3.556%; transform: translateX(-50%); }
+/* The MacBook's notch, 188 x 32 points, which a screenshot of the desktop never shows. */
+.mock-notch::before { content: ""; position: absolute; top: 0; left: 50%; z-index: 1; width: 20.89%; aspect-ratio: 188 / 32; transform: translateX(-50%); background: #000; border-radius: 0 0 6px 6px; }
 .features-info { display: flex; flex-direction: column; align-items: center; gap: 44px; }
 .features-text { margin: 0; font-size: 28px; font-weight: 500; line-height: 1.15; }
 .features-text strong { font-weight: 700; color: var(--violet); }
@@ -192,7 +195,9 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
 .more-copy p { margin: 0; color: var(--gray-2); font-size: 16px; line-height: 1.45; }
 .more-shot { position: relative; display: flex; justify-content: center; align-items: flex-start; min-height: 190px; overflow: hidden; border-radius: 20px; background: radial-gradient(90% 80% at 50% 0%, rgba(124, 59, 255, .18), transparent 70%), #07070a; }
 .more-shot > img { width: 100%; max-width: 453px; height: auto; }
-.more-lights { aspect-ratio: 453 / 190; min-height: 0; }
+.more-lights { aspect-ratio: 453 / 180; min-height: 0; }
+.more-fit { min-height: 0; align-items: flex-end; padding: 0; background: none; }
+.more-fit img { max-width: none; width: 100%; height: 190px; object-fit: cover; object-position: 50% 100%; border-radius: 16px; }
 .more-lights img { position: absolute; inset: 0; width: 100%; max-width: none; opacity: 0; transition: opacity .45s ease; }
 .more-lights img.on { opacity: 1; }
 .more-phone { align-items: flex-start; padding-top: 22px; max-height: 260px; }

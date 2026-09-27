@@ -25,7 +25,7 @@ contact on every call, video and talk. It does what the paid notch prompters do,
 a phone remote, clicker support, a full screen mirror for rigs and a coach after every take.
 
 <p align="center">
-  <img src="docs/images/notch.webp" alt="Souffleur's prompter hanging from the notch of a MacBook, lit from below with violet light: the line being read is bright and the next word is lit" width="800">
+  <img src="docs/images/in-action.webp" alt="A take filmed: Souffleur's prompter hangs just below the notch of a MacBook, counts down from three, then follows a voice word by word, the words said dimming and the next one lit in violet" width="800">
 </p>
 
 ## What it does
