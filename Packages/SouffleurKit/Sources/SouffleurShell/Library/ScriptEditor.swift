@@ -6,6 +6,8 @@ import SwiftUI
 struct ScriptEditor: NSViewRepresentable {
     let documentID: String
     @Binding var text: String
+    /// Documents dropped on the script: imported as new scripts, as anywhere else in the window.
+    var onDropFiles: ([URL]) -> Bool = { _ in false }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
@@ -35,6 +37,7 @@ struct ScriptEditor: NSViewRepresentable {
         editor.insertionPointColor = Theme.accentNS
         editor.typingAttributes = Markup.baseAttributes
         editor.delegate = context.coordinator
+        editor.onDropFiles = onDropFiles
         editor.string = text
         Markup.apply(to: editor)
 
@@ -90,6 +93,14 @@ struct ScriptEditor: NSViewRepresentable {
 /// right corner of the panel.
 final class ColumnTextView: NSTextView {
     static let column: CGFloat = 720
+    var onDropFiles: (([URL]) -> Bool)?
+
+    /// A file dropped on the text is imported, not written into the script as a path; dropped text is inserted.
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        let files = sender.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
+        if !files.isEmpty, let onDropFiles { return onDropFiles(files) }
+        return super.performDragOperation(sender)
+    }
     /// The corner the play button covers, in points from the top right of the panel.
     static let buttonCorner = CGSize(width: 124, height: 118)
 

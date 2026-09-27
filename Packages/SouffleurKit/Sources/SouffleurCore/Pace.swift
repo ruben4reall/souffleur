@@ -35,6 +35,14 @@ public enum Pace {
             : String(format: "%d:%02d", minutes, rest)
     }
 
+    /// The scrolling speed that brings the last line under the camera just as the words before it have been read at
+    /// `wordsPerMinute`: the distance, blank space between paragraphs included, over their reading time.
+    public static func pointsPerSecond(toScroll distance: CGFloat, words: Int, wordsOnLastLine: Double, wordsPerMinute: Double) -> CGFloat {
+        let seconds = readingTime(words: Int((Double(words) - min(Double(words), wordsOnLastLine)).rounded()), wordsPerMinute: wordsPerMinute)
+        guard distance > 0, seconds > 0 else { return 0 }
+        return distance / CGFloat(seconds)
+    }
+
     /// The scrolling speed that shows `wordsPerMinute` when a line holds `wordsPerLine` words.
     public static func pointsPerSecond(wordsPerMinute: Double, wordsPerLine: Double, lineHeight: CGFloat) -> CGFloat {
         guard wordsPerLine > 0 else { return 0 }

@@ -12,9 +12,26 @@ Each release's section is what Souffleur's update window and the GitHub release 
   another usual length.
 - **Use my pace**: after a take read at another pace than the speed set, the summary offers to roll at the reader's
   own pace from then on.
-- **Show the timer** now also hides it in the floating and full screen prompters.
 - The welcome window says what Souffleur does now: it hangs from the notch, stops when you stop, and stays out of
   screen recordings.
+
+Fixed, after a full review of every feature:
+
+- The buttons shown when the pointer rests on the prompter (restart, slower, pause, faster, close) work again: a click
+  on them used to pause the script instead.
+- Moving a line back or on while the script rolls (Page Up, Page Down, ⌃⌥⌘← and →, the phone remote) no longer
+  freezes it.
+- Auto Scroll and Voice Pace roll at the speed set: they ran 13 to 24% slow, so Fit in and the time left were off.
+- The phone remote no longer drops a request now and then.
+- A take started right after another could end at once.
+- The coach counts the last line: a full read shows 100%.
+- Voice Follow finds the language's model in another region when yours has none (English on a Mac set to
+  Switzerland).
+- Two-finger scrolling on the prompter follows the direction set in System Settings.
+- A document dropped on the script is imported instead of its path being typed in, and a web link dropped on the
+  window is no longer fetched.
+- Choosing another mode during a take applies at once.
+- With the Paper colours the notch prompter stays black and readable; Show the timer applies to every placement.
 
 ## 1.1.0 (2026-09-27)
 

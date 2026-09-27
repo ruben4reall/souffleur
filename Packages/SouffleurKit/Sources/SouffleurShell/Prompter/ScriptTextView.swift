@@ -12,12 +12,14 @@ struct PrompterStyle: Equatable {
     var mirror: MirrorMode
     var light: StageLight
 
-    @MainActor static func current(fullScreen: Bool = false) -> PrompterStyle {
+    /// The style from Settings. In the notch the prompter stays black like the notch it hangs from, so Paper, a
+    /// light page, reads as Night there.
+    @MainActor static func current(fullScreen: Bool = false, notch: Bool = false) -> PrompterStyle {
         PrompterStyle(
             font: Preferences.font,
             size: fullScreen ? Preferences.fullScreenFontSize : Preferences.fontSize,
             spacing: Preferences.lineSpacing,
-            theme: Preferences.theme,
+            theme: notch && Preferences.theme == .paper ? .night : Preferences.theme,
             centered: Preferences.centersText,
             dimsReadWords: Preferences.dimsReadWords,
             mirror: Preferences.mirror,
@@ -343,7 +345,12 @@ final class ScriptTextView: NSView {
                 self.easedTarget = nil
             }
         }
-        if speed != 0 { next += speed * dt }
+        if speed != 0 {
+            next += speed * dt
+            // A glide asked for while the text rolls (a line back, a line on) rides along with it: the spring settles on
+            // the moving line instead of holding the text still against the rolling.
+            if let target { self.target = min(target + speed * dt, endOffset) }
+        }
         if let target {
             // A critically damped spring: quick, and never overshoots the line.
             let omega: CGFloat = 10
@@ -414,9 +421,9 @@ final class ScriptTextView: NSView {
     override func scrollWheel(with event: NSEvent) {
         guard event.momentumPhase.isEmpty || event.momentumPhase == .changed else { return }
         let delta = event.hasPreciseScrollingDeltas ? event.scrollingDeltaY : event.scrollingDeltaY * 12
-        // Natural scrolling: fingers up bring later text in.
-        let move = event.isDirectionInvertedFromDevice ? -delta : delta
-        onNudge?(-move)
+        // The deltas already follow the scroll direction chosen in System Settings: like any scroll view, the text
+        // moves with the fingers under natural scrolling.
+        onNudge?(-delta)
         if event.phase == .ended || event.momentumPhase == .ended || (event.phase.isEmpty && event.momentumPhase.isEmpty) {
             onNudgeEnded?()
         }

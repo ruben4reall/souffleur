@@ -148,6 +148,7 @@ private struct PrompterPane: View {
                     ForEach(PrompterTheme.allCases) { Text($0.title).tag($0.rawValue) }
                 }
                 .pickerStyle(.segmented)
+                .help(String(localized: "Paper is a light page for the floating and full screen prompters; in the notch the prompter stays black.", bundle: .module))
                 Toggle(String(localized: "Dim the words already read", bundle: .module), isOn: $dimsReadWords)
                 if PrompterPlacement(rawValue: placement) != .fullScreen {
                     Picker(String(localized: "Mirror", bundle: .module), selection: $mirror) {

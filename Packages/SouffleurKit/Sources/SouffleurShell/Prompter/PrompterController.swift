@@ -23,6 +23,8 @@ public final class PrompterController {
     private var elapsedBefore: TimeInterval = 0
     private var countdown: Task<Void, Never>?
     private var autoClose: Task<Void, Never>?
+    /// The end of the script has reached the camera: the take ends after a moment, once.
+    private var finishing: Task<Void, Never>?
     private var flashReset: Task<Void, Never>?
     private var lastOffsetReport: CFTimeInterval = 0
     private var observers: [NSObjectProtocol] = []
@@ -82,7 +84,7 @@ public final class PrompterController {
         self.presentation = presentation
         presentation.refresh()
         wire(presentation.text)
-        presentation.text.load(script, style: PrompterStyle.current(fullScreen: placement == .fullScreen))
+        presentation.text.load(script, style: PrompterStyle.current(fullScreen: placement == .fullScreen, notch: placement == .notch))
         presentation.text.isHidden = demoBlank
         markVoicePlace()
         presentation.present()
@@ -99,6 +101,7 @@ public final class PrompterController {
     private func tearDown(animated: Bool) {
         countdown?.cancel()
         autoClose?.cancel()
+        cancelFinishing()
         stopListening()
         stopClock()
         tracker = nil
@@ -116,6 +119,7 @@ public final class PrompterController {
     }
 
     private func resetTake() {
+        cancelFinishing()
         state.phase = .idle
         state.summary = nil
         state.failure = nil
@@ -199,6 +203,7 @@ public final class PrompterController {
 
     public func pause() {
         guard state.phase == .rolling else { return }
+        cancelFinishing()
         state.phase = .paused
         if let rollingSince { elapsedBefore += Date().timeIntervalSince(rollingSince) }
         rollingSince = nil
@@ -305,9 +310,11 @@ public final class PrompterController {
         onChange?()
     }
 
+    /// The rolling speed: the whole script, blank space between paragraphs included, in its reading time.
     private var autoSpeed: CGFloat {
         guard let text = presentation?.text else { return 0 }
-        return Pace.pointsPerSecond(wordsPerMinute: state.wordsPerMinute, wordsPerLine: text.wordsPerLine, lineHeight: text.style.lineHeight)
+        let speed = Pace.pointsPerSecond(toScroll: text.endOffset, words: script.words.count, wordsOnLastLine: text.wordsPerLine, wordsPerMinute: state.wordsPerMinute)
+        return speed > 0 ? speed : Pace.pointsPerSecond(wordsPerMinute: state.wordsPerMinute, wordsPerLine: text.wordsPerLine, lineHeight: text.style.lineHeight)
     }
 
     private func flash(_ text: String) {
@@ -354,11 +361,7 @@ public final class PrompterController {
             guard let self, self.state.mode == .auto || self.state.mode == .pace, self.state.phase == .rolling else { return }
             // The last line has just reached the reading line: give the reader the time to say it.
             let words = max(4.0, self.presentation?.text.wordsPerLine ?? 8)
-            let wait = min(6, max(1.5, words / max(self.state.wordsPerMinute, 60) * 60))
-            Task { [weak self] in
-                try? await Task.sleep(for: .seconds(wait))
-                if self?.state.phase == .rolling { self?.finish() }
-            }
+            self.finishSoon(after: min(6, max(1.5, words / max(self.state.wordsPerMinute, 60) * 60)))
         }
     }
 
@@ -407,15 +410,33 @@ public final class PrompterController {
         onChange?()
         if tracker.isFinished {
             // Let the last word land before the summary.
-            Task { [weak self] in
-                try? await Task.sleep(for: .seconds(1.2))
-                if self?.state.phase == .rolling { self?.finish() }
-            }
+            finishSoon(after: 1.2)
         }
+    }
+
+    /// Ends the take after `wait` seconds, unless it is already about to end, or is paused, restarted or closed first.
+    private func finishSoon(after wait: TimeInterval) {
+        guard finishing == nil else { return }
+        finishing = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(wait))
+            guard let self, !Task.isCancelled else { return }
+            self.finishing = nil
+            if self.state.phase == .rolling { self.finish() }
+        }
+    }
+
+    private func cancelFinishing() {
+        finishing?.cancel()
+        finishing = nil
     }
 
     private func finish() {
         guard state.phase == .rolling || state.phase == .paused else { return }
+        cancelFinishing()
+        // Rolling to the end reads the last line too: the coach counts the whole script.
+        if state.mode != .voice, let text = presentation?.text, text.offset >= text.endOffset - 1 {
+            recorder?.record(wordIndex: script.words.count, at: Date())
+        }
         if let rollingSince { elapsedBefore += Date().timeIntervalSince(rollingSince) }
         rollingSince = nil
         state.elapsed = elapsedBefore
@@ -521,7 +542,7 @@ public final class PrompterController {
         let text = presentation.text
         let word = text.word(atOffset: text.offset)
         presentation.refresh()
-        text.load(script, style: PrompterStyle.current(fullScreen: placement == .fullScreen))
+        text.load(script, style: PrompterStyle.current(fullScreen: placement == .fullScreen, notch: placement == .notch))
         text.setOffset(text.offset(forWord: word))
         markVoicePlace()
     }

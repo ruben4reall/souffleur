@@ -30,7 +30,9 @@ public struct LibraryView: View {
         }
         .searchable(text: $search, placement: .sidebar, prompt: Text("Search", bundle: .module))
         .dropDestination(for: URL.self) { urls, _ in
-            app.importDocuments(urls)
+            // Documents only: a link dropped here is not fetched.
+            let files = urls.filter(\.isFileURL)
+            return !files.isEmpty && app.importDocuments(files)
         } isTargeted: { isTargeted = $0 }
         .overlay {
             if isTargeted {
@@ -86,7 +88,7 @@ public struct LibraryView: View {
                     ScriptEditor(documentID: document.id, text: Binding(
                         get: { store.document(document.id)?.text ?? "" },
                         set: { store.update(document.id, text: $0) }
-                    ))
+                    ), onDropFiles: { app.importDocuments($0) })
                     PlayButton(app: app)
                         .padding(18)
                 }

@@ -117,7 +117,8 @@ final class CardPresentation: PrompterPresentation {
             guard let overlay else { return [] }
             if state.failure != nil || state.summary != nil { return [overlay.bounds] }
             guard state.isHovering else { return [] }
-            return [NSRect(x: overlay.bounds.midX - 110 * scale, y: 0, width: 220 * scale, height: 60 * scale)]
+            // The hosting view is flipped: the controls sit along its bottom edge, at the largest y.
+            return [NSRect(x: overlay.bounds.midX - 110 * scale, y: overlay.bounds.maxY - 60 * scale, width: 220 * scale, height: 60 * scale)]
         }
         container.addSubview(overlay)
         self.overlay = overlay

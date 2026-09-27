@@ -144,7 +144,8 @@ camera pointed at it. To show the prompter in a tutorial, turn this off in Setti
 - **Everywhere else**, the prompter hangs from the middle of the menu bar, floats wherever you put it, or fills a
   display.
 - Voice follow uses SpeechAnalyzer on macOS 26 when its model for your language is on the Mac, and on-device
-  SFSpeechRecognizer otherwise.
+  SFSpeechRecognizer otherwise. It needs the language's offline model, which macOS downloads when you add the
+  language to Dictation (System Settings, Keyboard). Voice Pace works in every language.
 
 ## Build from source
 

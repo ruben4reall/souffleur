@@ -1,6 +1,7 @@
 @preconcurrency import AVFoundation
 import Foundation
-@preconcurrency import Speech
+@preconcurrency import SouffleurCore
+import Speech
 
 /// Speech recognition on this Mac: SpeechAnalyzer on macOS 26, SFSpeechRecognizer before. Both report the latest
 /// words heard through the same callback.
@@ -147,10 +148,13 @@ final class LegacyEngine: RecognitionEngine, @unchecked Sendable {
     /// Errors in a row without a word heard; five end the recognition.
     private var failures = 0
 
-    /// Nil unless the language can be recognised on this Mac: Souffleur never sends a voice to a server.
+    /// Nil unless the language can be recognised on this Mac: Souffleur never sends a voice to a server. Another region
+    /// of the same language is taken when the one asked for has no model here (English in Switzerland, for one).
     init?(locale: Locale, vocabulary: [String], report: @escaping @Sendable (ListenerEvent) -> Void) {
-        guard let recognizer = SFSpeechRecognizer(locale: locale), recognizer.isAvailable,
-              recognizer.supportsOnDeviceRecognition else { return nil }
+        let candidates = RecognitionLocales.candidates(for: locale, supported: Array(SFSpeechRecognizer.supportedLocales()), current: .current)
+        guard let recognizer = candidates.lazy
+            .compactMap({ SFSpeechRecognizer(locale: $0) })
+            .first(where: { $0.isAvailable && $0.supportsOnDeviceRecognition }) else { return nil }
         self.recognizer = recognizer
         self.vocabulary = vocabulary
         self.report = report
