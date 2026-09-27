@@ -188,15 +188,15 @@ public enum Preferences {
     }
 
     nonisolated(unsafe) public static let defaults: [String: Any] = [
-        Key.mode: ScrollMode.voice.rawValue,
+        Key.mode: ScrollMode.auto.rawValue,
         Key.placement: PrompterPlacement.notch.rawValue,
         Key.wordsPerMinute: Pace.conversational,
         Key.fontSize: 19.0,
         Key.font: PrompterFont.system.rawValue,
-        Key.lineSpacing: 1.28,
+        Key.lineSpacing: 1.5,
         Key.theme: PrompterTheme.night.rawValue,
-        Key.notchWidth: 380.0,
-        Key.notchLines: 3.0,
+        Key.notchWidth: 360.0,
+        Key.notchLines: 4.0,
         Key.floatingWidth: 520.0,
         Key.floatingHeight: 200.0,
         Key.fullScreenFontSize: 64.0,
@@ -222,7 +222,7 @@ public enum Preferences {
     private static var store: UserDefaults { .standard }
 
     public static var mode: ScrollMode {
-        get { ScrollMode(rawValue: store.string(forKey: Key.mode) ?? "") ?? .voice }
+        get { ScrollMode(rawValue: store.string(forKey: Key.mode) ?? "") ?? .auto }
         set { store.set(newValue.rawValue, forKey: Key.mode) }
     }
 

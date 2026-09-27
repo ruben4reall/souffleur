@@ -15,6 +15,13 @@ public enum Theme {
     public static let highlightNS = NSColor(srgbRed: 0.804, green: 0.725, blue: 1, alpha: 1)
     public static let stage = Color(red: 0.027, green: 0.027, blue: 0.031)
 
+    /// The panels of the main window: near black in dark mode, white in light mode.
+    public static let card = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? NSColor(srgbRed: 0.075, green: 0.075, blue: 0.086, alpha: 1)
+            : NSColor.white
+    })
+
     /// The stage light running around the notch, in the colour chosen in Settings (violet by default).
     static func glowColors(_ light: StageLight) -> [CGColor] {
         light.stops.map { CGColor(srgbRed: $0.0, green: $0.1, blue: $0.2, alpha: 1) }

@@ -50,7 +50,9 @@ final class NotchPresentation: PrompterPresentation {
             menuBarHeight: screen.frame.maxY - screen.visibleFrame.maxY
         )
         let style = PrompterStyle.current()
-        let textHeight = (style.lineHeight * CGFloat(Preferences.notchLines) + 16).rounded()
+        // Exactly the lines chosen: the one just read above, fading; the one being read; those to come, the last
+        // fading into the edge.
+        let textHeight = (style.lineHeight * CGFloat(Preferences.notchLines)).rounded()
         let layout = PrompterLayout(notch: notch, width: Preferences.notchWidth, textHeight: textHeight)
         self.layout = layout
         panel.sharingType = Preferences.hiddenFromCapture ? .none : .readOnly
@@ -67,11 +69,11 @@ final class NotchPresentation: PrompterPresentation {
         content.frame = bounds
         mask.frame = bounds
         text.frame = flipped(layout.textFrame, in: size)
-        text.readingInset = 10
-        text.hiddenTop = 10
-        text.fadeTop = 6
-        text.fadeBottom = 22
-        text.horizontalInset = 20
+        text.readingInset = style.lineHeight
+        text.hiddenTop = 0
+        text.fadeTop = style.lineHeight * 0.9
+        text.fadeBottom = style.lineHeight * 0.8
+        text.horizontalInset = 18
         text.showsBand = false
         installOverlays(layout: layout, size: size)
         let path = outline(open: isOpen)

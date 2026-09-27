@@ -239,6 +239,14 @@ public final class PrompterController {
         onChange?()
     }
 
+    /// The speed slider moved: a take rolling at a steady pace follows it at once.
+    public func paceChanged() {
+        guard Preferences.wordsPerMinute != state.wordsPerMinute else { return }
+        state.wordsPerMinute = Preferences.wordsPerMinute
+        if state.phase == .rolling, state.mode == .auto { presentation?.text.setSpeed(autoSpeed, eased: true) }
+        onChange?()
+    }
+
     public func faster() { changePace(by: 10) }
     public func slower() { changePace(by: -10) }
 

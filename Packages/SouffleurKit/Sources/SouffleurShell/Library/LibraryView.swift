@@ -10,7 +10,7 @@ public struct LibraryView: View {
     @State private var search = ""
     @State private var isTargeted = false
     @Environment(\.openWindow) private var openWindow
-    @AppStorage(Preferences.Key.mode) private var mode = ScrollMode.voice.rawValue
+    @AppStorage(Preferences.Key.mode) private var mode = ScrollMode.auto.rawValue
     @AppStorage(Preferences.Key.placement) private var placement = PrompterPlacement.notch.rawValue
     @AppStorage(Preferences.Key.wordsPerMinute) private var pace = Pace.conversational
     @AppStorage(Preferences.Key.lastSummary) private var lastSummary = ""
@@ -80,14 +80,21 @@ public struct LibraryView: View {
 
     @ViewBuilder private var detail: some View {
         if let document = store.selected {
-            VStack(spacing: 0) {
-                ScriptEditor(documentID: document.id, text: Binding(
-                    get: { store.document(document.id)?.text ?? "" },
-                    set: { store.update(document.id, text: $0) }
-                ))
-                Divider()
-                footer(document)
+            VStack(spacing: 12) {
+                ZStack(alignment: .topTrailing) {
+                    ScriptEditor(documentID: document.id, text: Binding(
+                        get: { store.document(document.id)?.text ?? "" },
+                        set: { store.update(document.id, text: $0) }
+                    ))
+                    PlayButton(app: app)
+                        .padding(18)
+                }
+                .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.card))
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.primary.opacity(0.07)))
+                SpeedPanel(document: document, pace: $pace, mode: $mode, lastSummary: lastSummary)
             }
+            .padding(14)
             .navigationTitle(document.title)
             .toolbar { promptToolbar }
         } else {
@@ -113,7 +120,7 @@ public struct LibraryView: View {
                 }
                 .pickerStyle(.inline)
             } label: {
-                let current = ScrollMode(rawValue: mode) ?? .voice
+                let current = ScrollMode(rawValue: mode) ?? .auto
                 Label(current.title, systemImage: current.symbol)
                     .labelStyle(.titleAndIcon)
             }
@@ -132,24 +139,6 @@ public struct LibraryView: View {
             }
             .help(String(localized: "Where the prompter appears", bundle: .module))
 
-            if mode == ScrollMode.auto.rawValue || mode == ScrollMode.pace.rawValue {
-                Stepper(value: $pace, in: Preferences.minimumPace...Preferences.maximumPace, step: 10) {
-                    Text("\(Int(pace)) wpm").monospacedDigit()
-                }
-                .help(String(localized: "Words per minute", bundle: .module))
-            }
-
-            Button { app.promptSelected() } label: {
-                Label(String(localized: "Prompt", bundle: .module), systemImage: "play.fill")
-                    .labelStyle(.titleAndIcon)
-                    .padding(.horizontal, 4)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(Theme.accent)
-            .foregroundStyle(.white)
-            .disabled(!app.canPrompt)
-            .keyboardShortcut(.return, modifiers: .command)
-            .help(String(localized: "Open the prompter (⌘↩, or ⌃⌥⌘P from any app)", bundle: .module))
         }
     }
 
@@ -161,27 +150,6 @@ public struct LibraryView: View {
         }
     }
 
-    private func footer(_ document: ScriptDocument) -> some View {
-        let words = document.wordCount
-        let time = Pace.clock(Pace.readingTime(words: words, wordsPerMinute: pace))
-        return HStack(spacing: 14) {
-            Text("\(words) words", bundle: .module)
-            Text("\(time) at \(Int(pace)) wpm", bundle: .module)
-            Spacer()
-            if !lastSummary.isEmpty {
-                Label {
-                    Text("Last take: \(lastSummary)", bundle: .module)
-                } icon: {
-                    Image(systemName: "record.circle").foregroundStyle(Theme.accent)
-                }
-            }
-        }
-        .font(.system(size: 11, weight: .medium).monospacedDigit())
-        .foregroundStyle(.secondary)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 7)
-        .background(.bar)
-    }
 }
 
 private struct ScriptRow: View {

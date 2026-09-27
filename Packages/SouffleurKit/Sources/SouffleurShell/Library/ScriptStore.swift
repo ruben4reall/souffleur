@@ -155,14 +155,14 @@ public final class ScriptStore {
     static let welcomeScript = """
     # Welcome to Souffleur
     Hello, and thank you for trying Souffleur. [smile]
-    Read this out loud. The words you say light up, and the script follows you, line by line, right under your camera.
-    Take your time. When you pause, Souffleur waits for you. [pause]
-    If you skip a sentence, it finds you again as soon as you pick up further down.
+    Your script rolls right under your camera, so you can read it and still look your audience in the eye.
+    Press play, then move the speed until the words arrive just as you need them.
+    Turn on Follow my voice, and the script follows your words instead, line by line. When you pause, it waits for you. [pause]
 
     # Make it yours
     Write your own script in this window, or drop a document on it: a text file, a Word document, a PDF, or the speaker notes of a presentation.
-    Put a cue in square brackets, like [breathe], and it shows quietly without waiting for you to say it. Two stars around a word make it **stand out**.
-    When you are ready, press Prompt, look at the camera, and speak.
+    Put a cue in square brackets, like [breathe], and it shows quietly. Two stars around a word make it **stand out**.
+    When you are ready, press play, look at the camera, and speak.
     """
 }
 
