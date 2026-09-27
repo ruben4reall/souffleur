@@ -3,6 +3,29 @@
     <channel>
         <title>Souffleur</title>
         <item>
+            <title>1.1.0</title>
+            <pubDate>Sun, 27 Sep 2026 22:06:11 +0200</pubDate>
+            <link>https://getsouffleur.vercel.app</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/ruben4reall/souffleur/releases</sparkle:fullReleaseNotesLink>
+            <sparkle:version>1.1.0</sparkle:version>
+            <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[Souffleur now looks and behaves like the notch prompters people already know, and keeps everything it adds.
+
+- **Stops when you stop**: Voice Pace is the new default. Press play and speak: the script rolls at your speed and
+  waits as soon as you go quiet. The switch in the speed card turns it off.
+- **A new prompter**: compact, lit from below with a soft light and a faint halo beneath it, the line being read in
+  the middle with long fades above and below. On a screen without a notch it hangs from the menu bar.
+- **Stage light colours**: violet, ocean, ember, mint or gold, or none, in Settings, Prompter.
+- **A new window**: a big play button on the script, and a speed card from tortoise to hare.
+- **Invisible in screen recordings**: checked on macOS 26.5 with the Mac's own screenshots and recordings and with
+  ScreenCaptureKit, which screen recorders and meeting apps use. Settings and the README now say what was measured.
+- **Shortcuts**: Settings says when another app already holds one of Souffleur's shortcuts.
+- **Phone remote**: requests time out, and the number of connections is capped.
+]]></description>
+            <enclosure url="https://github.com/ruben4reall/souffleur/releases/download/v1.1.0/Souffleur-1.1.0.dmg" length="3251500" type="application/octet-stream" sparkle:edSignature="zaUIqw83CY2M6QyfUO1RT4ZJlo08XuidhmhenjbqkDMbtCcMPxxiBI1n0+4PdPBRye12b5AsW6Fj9wou+oUVCQ=="/>
+        </item>
+        <item>
             <title>1.0.0</title>
             <pubDate>Sun, 27 Sep 2026 21:04:09 +0200</pubDate>
             <link>https://getsouffleur.vercel.app</link>
