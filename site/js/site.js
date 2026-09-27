@@ -1,70 +1,94 @@
-/* Souffleur website. On the hero's screen the prompter reads its own script: real captures of the app, taken a few
-   words apart, follow each other like the text scrolling in the notch; a chip shows another state and stops the tour.
-   Everything is readable without this script. */
+// Souffleur's website: a live clock in the menu bar, the reading reel, the spotlight, the stage light chips and the
+// page counter. Everything still reads without it.
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 (() => {
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  for (const mac of document.querySelectorAll('[data-mac]')) mac.setAttribute('data-lid', 'still');
-
-  const stage = document.querySelector('[data-demo]');
-  const frames = [...document.querySelectorAll('[data-demo] .shot[data-frame]')];
-  const shots = [...document.querySelectorAll('[data-demo] .shot[data-state]')];
-  const chips = [...document.querySelectorAll('.demo-chips .chip')];
-  const caption = document.querySelector('.demo-caption');
-  if (!stage || !chips.length) return;
-
-  let frame = 0;
-  let reading = null;
-  let tour = null;
-  let current = 0;
-
-  const read = (on) => {
-    clearInterval(reading);
-    reading = null;
-    if (!on) return;
-    stage.dataset.live = 'read';
-    if (reduce) return;
-    reading = setInterval(() => {
-      frames[frame].classList.remove('on');
-      frame = (frame + 1) % frames.length;
-      frames[frame].classList.add('on');
-    }, 1150);
+  // The menu bar's clock, like the Mac's: "Sun Sep 27 9:41 PM".
+  const clock = document.querySelector('[data-clock]');
+  if (!clock) return;
+  const day = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const time = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+  const tick = () => {
+    const now = new Date();
+    clock.textContent = `${day.format(now).replace(',', '')} ${time.format(now)}`;
   };
+  tick();
+  setInterval(tick, 15000);
+})();
 
-  const show = (i) => {
-    current = i;
-    const state = chips[i].dataset.state;
-    chips.forEach((chip, j) => chip.setAttribute('aria-pressed', String(j === i)));
-    if (caption) caption.textContent = chips[i].dataset.caption;
-    if (state === 'read') {
-      shots.forEach((shot) => shot.classList.remove('on'));
-      read(true);
-    } else {
-      read(false);
-      stage.dataset.live = 'state';
-      shots.forEach((shot) => shot.classList.toggle('on', shot.dataset.state === state));
-    }
-  };
+// Runs `step` every `interval` while `element` is on screen and the page is visible. Returns a function that stops it
+// for good.
+function whileVisible(element, interval, step) {
+  let timer = null;
+  let seen = false;
+  let cancelled = false;
+  const run = () => { if (!cancelled && !timer && seen && !document.hidden) timer = setInterval(step, interval); };
+  const halt = () => { clearInterval(timer); timer = null; };
+  new IntersectionObserver(([entry]) => { seen = entry.isIntersecting; seen ? run() : halt(); }).observe(element);
+  document.addEventListener('visibilitychange', () => (document.hidden ? halt() : run()));
+  return () => { cancelled = true; halt(); };
+}
 
-  // The tour: the read-along for a while, then each state, and back.
-  const start = () => {
-    if (reduce || tour) return;
-    read(true);
-    tour = setInterval(() => show((current + 1) % chips.length), 7000);
-  };
-  chips.forEach((chip, i) => chip.addEventListener('click', () => {
-    clearInterval(tour);
-    tour = -1;
-    show(i);
-  }));
-  new IntersectionObserver(([entry]) => {
-    if (tour === -1) return;
-    if (entry.isIntersecting) start();
-    else { clearInterval(tour); tour = null; read(false); }
-  }).observe(stage);
-  document.addEventListener('visibilitychange', () => {
-    if (tour === -1) return;
-    if (document.hidden) { clearInterval(tour); tour = null; read(false); } else start();
+(() => {
+  // The reel: the real prompter following a voice, one capture after the other.
+  const reel = document.querySelector('[data-reel]');
+  if (!reel || still) return;
+  const shots = [...reel.querySelectorAll('.action-shot')];
+  let index = 0;
+  whileVisible(reel, 1500, () => {
+    shots[index].classList.remove('on');
+    index = (index + 1) % shots.length;
+    shots[index].classList.add('on');
   });
+})();
+
+(() => {
+  // The spotlight follows the pointer over the title; without a pointer it roams on its own (CSS).
+  const title = document.querySelector('[data-spotlight]');
+  if (!title) return;
+  const lit = title.querySelector('.spotlight-lit');
+  title.closest('section').addEventListener('pointermove', (event) => {
+    const box = title.getBoundingClientRect();
+    lit.style.setProperty('--mouse-x', `${((event.clientX - box.left) / box.width) * 100}%`);
+    lit.style.setProperty('--mouse-y', `${((event.clientY - box.top) / box.height) * 100}%`);
+  });
+})();
+
+(() => {
+  // The cards' gradient borders turn towards the pointer.
+  for (const card of document.querySelectorAll('[data-glow]')) {
+    card.addEventListener('pointermove', (event) => {
+      const box = card.getBoundingClientRect();
+      card.style.setProperty('--grad-x', `${((event.clientX - box.left) / box.width) * 100}%`);
+      card.style.setProperty('--grad-y', `${((event.clientY - box.top) / box.height) * 100}%`);
+    });
+  }
+})();
+
+(() => {
+  // The stage light chips: each colour is its own capture of the app. They take turns until one is chosen.
+  const shots = document.querySelector('[data-lights]');
+  if (!shots) return;
+  const chips = [...document.querySelectorAll('.light-chip')];
+  const show = (light) => {
+    for (const chip of chips) chip.setAttribute('aria-pressed', String(chip.dataset.light === light));
+    for (const image of shots.querySelectorAll('img')) image.classList.toggle('on', image.dataset.light === light);
+  };
+  let stop = () => {};
+  if (!still) {
+    let index = 0;
+    stop = whileVisible(shots, 2400, () => {
+      index = (index + 1) % chips.length;
+      show(chips[index].dataset.light);
+    });
+  }
+  for (const chip of chips) {
+    chip.addEventListener('click', () => {
+      stop();
+      stop = () => {};
+      show(chip.dataset.light);
+    });
+  }
 })();
 
 (() => {

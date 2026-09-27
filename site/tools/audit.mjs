@@ -17,7 +17,7 @@ const SIZES = {
   tablet: { width: 820, height: 1180, deviceScaleFactor: 1, mobile: true },
   phone: { width: 390, height: 844, deviceScaleFactor: 2, mobile: true },
 };
-const SECTIONS = ['story', 'voice', 'places', 'lights', 'control', 'scripts', 'coach', 'settings', 'compare', 'privacy', 'open-source', 'faq', 'download'];
+const SECTIONS = ['action', 'invisible', 'features', 'more', 'free', 'open', 'faq'];
 
 const { values } = parseArgs({ options: { only: { type: 'string' }, 'no-shots': { type: 'boolean' }, path: { type: 'string', default: '/' }, wrapped: { type: 'boolean' }, url: { type: 'string' } } });
 const WRAPPED = join(SITE_DIR, 'artifact-check.html');
@@ -41,8 +41,8 @@ const INSPECT = `(() => {
   for (const el of document.querySelectorAll('body *')) {
     const r = el.getBoundingClientRect();
     if (r.width === 0 || getComputedStyle(el).position === 'fixed') continue;
-    if (r.right > innerWidth + 1 && !el.closest('.table-card') && !el.closest('.mac')) wide.push(el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).split(' ')[0] : '') + ' right=' + Math.round(r.right));
-    if (['P', 'H1', 'H2', 'H3', 'A', 'BUTTON', 'SPAN', 'LI', 'SUMMARY'].includes(el.tagName) && el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflow !== 'visible' && !el.classList.contains('visually-hidden')) out.push('text clipped: ' + el.tagName + ' ' + el.textContent.trim().slice(0, 40));
+    if (r.right > innerWidth + 1 && !el.closest('.hero-visual, .faq-list, .footer-glow, .invisible-glow, .action-screen, .mock')) wide.push(el.tagName.toLowerCase() + (el.className ? '.' + String(el.className).split(' ')[0] : '') + ' right=' + Math.round(r.right));
+    if (['P', 'H1', 'H2', 'H3', 'A', 'BUTTON', 'SPAN', 'LI', 'SUMMARY'].includes(el.tagName) && el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflow !== 'visible' && !el.classList.contains('visually-hidden') && !el.closest('[aria-hidden="true"]')) out.push('text clipped: ' + el.tagName + ' ' + el.textContent.trim().slice(0, 40));
   }
   if (wide.length) out.push('past the right edge: ' + [...new Set(wide)].slice(0, 6).join(', '));
   // Contrast: each element holding text, against the first opaque background behind it. Text over pictures is left
@@ -53,7 +53,7 @@ const INSPECT = `(() => {
   const low = new Set();
   for (const el of document.querySelectorAll('body *')) {
     const text = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-    if (!text || el.closest('.stage, .mac, .visually-hidden, .skip')) continue;
+    if (!text || el.closest('.prompter, .more-shot, .mock, .action-screen, .visually-hidden, .skip, [aria-hidden="true"]')) continue;
     const style = getComputedStyle(el);
     if (style.visibility === 'hidden' || style.display === 'none' || parseFloat(style.opacity) === 0) continue;
     if (style.webkitTextFillColor === 'rgba(0, 0, 0, 0)' || style.color === 'rgba(0, 0, 0, 0)') continue; // gradient text
@@ -88,13 +88,10 @@ try {
     for (const p of problems) console.log('  - ' + p);
     failures += problems.length;
     if (!values['no-shots']) {
-      // Each demo state on the hero, then every section from its top.
-      const states = await page.evaluate(`[...document.querySelectorAll('.demo-chips .chip')].map((c) => c.dataset.state)`);
-      for (const state of states) {
-        await page.evaluate(`document.querySelector('.demo-chips .chip[data-state="${state}"]').click(); scrollTo(0, 0)`);
-        await sleep(900);
-        await page.screenshot(join(SHOTS, `${name}-hero-${state}.png`));
-      }
+      // The hero, then every section from its top.
+      await page.evaluate('scrollTo(0, 0)');
+      await sleep(600);
+      await page.screenshot(join(SHOTS, `${name}-hero.png`));
       for (const id of SECTIONS) {
         await page.evaluate(`document.getElementById('${id}').scrollIntoView({ block: 'start', behavior: 'instant' })`);
         await sleep(350);

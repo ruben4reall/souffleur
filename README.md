@@ -52,7 +52,7 @@ a phone remote, clicker support, a full screen mirror for rigs and a coach after
   listen in.
 
 <p align="center">
-  <img src="docs/images/library.webp" alt="The Souffleur window: the library on the left, the welcome script in the editor, and the Prompt button" width="800">
+  <img src="docs/images/library.webp" alt="The Souffleur window: the library on the left, the welcome script with its play button, and the speed card below it" width="800">
 </p>
 
 ## Install

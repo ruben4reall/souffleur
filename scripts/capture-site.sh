@@ -7,10 +7,13 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 OUT=.build/site-shots
 mkdir -p "$OUT" site/assets/notch site/assets/app docs/images
-[ -d .build/xcode/Build/Products/Debug/Souffleur.app ] || scripts/build.sh >/dev/null
+# SOUFFLEUR_APP points at a Debug build elsewhere (another worktree), to capture without building here.
+BUNDLE="${SOUFFLEUR_APP:-.build/xcode/Build/Products/Debug/Souffleur.app}"
+[ -d "$BUNDLE" ] || { scripts/build.sh >/dev/null; BUNDLE=.build/xcode/Build/Products/Debug/Souffleur.app; }
+mkdir -p .build
 [ -x .build/window-id ] || swiftc -O -o .build/window-id scripts/window-id.swift
 [ -x .build/compose ] || swiftc -O -o .build/compose scripts/compose.swift
-APP=.build/xcode/Build/Products/Debug/Souffleur.app/Contents/MacOS/Souffleur
+APP="$BUNDLE/Contents/MacOS/Souffleur"
 
 run() { pkill -x Souffleur 2>/dev/null || true; sleep 0.8; ("$APP" -SouffleurSkipWelcome YES -hiddenFromCapture NO -AppleLanguages '(en)' -AppleLocale en_US "$@" >/dev/null 2>&1 &) }
 panel() { .build/window-id Souffleur panel | head -1 | cut -d' ' -f1; }
@@ -20,19 +23,25 @@ shoot_window() { local id; id=$(window "${2:-}"); [ -n "$id" ] && screencapture 
 # Seconds until the demo has read `word` words: launch, countdown, 0.4 s a word, the glide.
 at() { echo "1 + 2.4 + $1 * 0.4 + 1.2" | bc; }
 
+echo "Hero:"
+# The empty prompter, and the script as the prompter lays it out: the page scrolls one behind the other.
+run -SouffleurDemo notch -SouffleurDemoBlank YES -countdown NO; sleep 3.5; shoot_panel frame
+"$APP" -SouffleurSkipWelcome YES -SouffleurDemoStrip "$PWD/$OUT/strip.png" -AppleLanguages '(en)' >/dev/null 2>&1 || true
+echo "  strip"
+
 echo "Notch:"
-for stop in 4 9 14 19 24 29; do run -SouffleurDemo notch -SouffleurDemoVoice YES -SouffleurDemoStop "$stop"; sleep "$(at "$stop")"; shoot_panel "read-$stop"; done
+for stop in 4 9 14 19 24 29; do run -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES -SouffleurDemoStop "$stop"; sleep "$(at "$stop")"; shoot_panel "read-$stop"; done
 for light in violet ocean ember mint gold; do
-  run -SouffleurDemo notch -SouffleurDemoVoice YES -SouffleurDemoStop 19 -stageLight "$light"; sleep "$(at 19)"; shoot_panel "light-$light"
+  run -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES -SouffleurDemoStop 14 -stageLight "$light"; sleep "$(at 14)"; shoot_panel "light-$light"
 done
-run -SouffleurDemo notch -SouffleurDemoVoice YES -SouffleurDemoStop 16 -SouffleurDemoHover YES; sleep "$(at 16)"; shoot_panel controls
-run -SouffleurDemo notch -SouffleurDemoVoice YES; sleep 2.3; shoot_panel countdown
-run -SouffleurDemo notch -SouffleurDemoVoice YES; sleep 58; shoot_panel summary
+run -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES -SouffleurDemoStop 16 -SouffleurDemoHover YES; sleep "$(at 16)"; shoot_panel controls
+run -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES; sleep 2.3; shoot_panel countdown
+run -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES; sleep 50; shoot_panel summary
 
 echo "Cards:"
-run -SouffleurDemo floating -SouffleurDemoVoice YES -SouffleurDemoStop 22; sleep "$(at 22)"; shoot_panel floating || true
+run -SouffleurDemo floating -scrollMode voice -SouffleurDemoVoice YES -SouffleurDemoStop 22; sleep "$(at 22)"; shoot_panel floating || true
 [ -f "$OUT/floating.png" ] || { id=$(.build/window-id Souffleur all | awk '$6!=0' | head -1 | cut -d' ' -f1); screencapture -x -o -l "$id" "$OUT/floating.png"; echo "  floating"; }
-run -SouffleurDemo fullScreen -SouffleurDemoVoice YES -SouffleurDemoStop 22; sleep "$(at 22)"
+run -SouffleurDemo fullScreen -scrollMode voice -SouffleurDemoVoice YES -SouffleurDemoStop 22; sleep "$(at 22)"
 id=$(.build/window-id Souffleur all | awk '$6!=0' | head -1 | cut -d' ' -f1); screencapture -x -o -l "$id" "$OUT/fullscreen.png"; echo "  fullscreen"
 
 echo "Windows:"
@@ -44,20 +53,21 @@ for pane in Prompter Voice Controls; do
 done
 
 echo "Phone remote:"
-run -remoteEnabled YES -SouffleurDemo notch -SouffleurDemoVoice YES -SouffleurDemoStop 22; sleep 3
+run -remoteEnabled YES -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES -SouffleurDemoStop 22; sleep 3
 curl -s -o /dev/null "http://127.0.0.1:7575/" || true
 TOKEN=$(defaults read ch.rubencatalao.souffleur remoteToken)
 sleep "$(at 22)"
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=3 \
-  --window-size=390,844 --screenshot="$OUT/remote.png" "http://127.0.0.1:7575/?token=$TOKEN" >/dev/null 2>&1 || true
+node site/tools/shoot-page.mjs "http://127.0.0.1:7575/?token=$TOKEN" "$OUT/remote.png" phone >/dev/null 2>&1 || true
 [ -f "$OUT/remote.png" ] && echo "  remote"
 pkill -x Souffleur || true
 
 echo "WebP:"
-for f in "$OUT"/read-*.png "$OUT"/light-*.png "$OUT"/controls.png "$OUT"/countdown.png "$OUT"/summary.png; do cwebp -quiet -q 92 -alpha_q 100 "$f" -o "site/assets/notch/$(basename "$f" .png).webp"; done
+for f in "$OUT"/frame.png "$OUT"/read-*.png "$OUT"/light-*.png "$OUT"/controls.png "$OUT"/countdown.png "$OUT"/summary.png; do cwebp -quiet -q 92 -alpha_q 100 "$f" -o "site/assets/notch/$(basename "$f" .png).webp"; done
+cwebp -quiet -q 94 -alpha_q 100 "$OUT/strip.png" -o site/assets/notch/strip.webp
 cwebp -quiet -q 90 -alpha_q 100 "$OUT/floating.png" -o site/assets/app/floating.webp
 cwebp -quiet -q 86 -resize 1800 0 "$OUT/fullscreen.png" -o site/assets/app/fullscreen.webp
 for f in "$OUT"/library.png "$OUT"/settings-*.png; do cwebp -quiet -q 88 "$f" -o "site/assets/app/$(basename "$f" .png | tr '[:upper:]' '[:lower:]').webp"; done
+cp site/assets/app/library.webp docs/images/library.webp
 [ -f "$OUT/remote.png" ] && cwebp -quiet -q 88 "$OUT/remote.png" -o site/assets/app/remote.webp
 DESKTOP="${SOUFFLEUR_DESKTOP:-}"
 if [ -n "$DESKTOP" ]; then
