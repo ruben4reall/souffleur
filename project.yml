@@ -1,0 +1,75 @@
+name: Souffleur
+options:
+  bundleIdPrefix: ch.rubencatalao
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "26.5"
+packages:
+  SouffleurKit:
+    path: Packages/SouffleurKit
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.0
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: $(MARKETING_VERSION)
+    ENABLE_HARDENED_RUNTIME: YES
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Manual
+    DEVELOPMENT_TEAM: ""
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    DEAD_CODE_STRIPPING: YES
+targets:
+  Souffleur:
+    type: application
+    platform: macOS
+    sources:
+      - App
+    dependencies:
+      - package: SouffleurKit
+        product: SouffleurShell
+      - package: Sparkle
+    # The hardened runtime blocks the microphone unless the app declares it: voice follow needs it.
+    entitlements:
+      path: App/Souffleur.entitlements
+      properties:
+        com.apple.security.device.audio-input: true
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleName: Souffleur
+        CFBundleDisplayName: Souffleur
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleLocalizations: [en]
+        LSMinimumSystemVersion: "14.0"
+        LSApplicationCategoryType: public.app-category.productivity
+        NSHumanReadableCopyright: "Ruben Catalao. MIT License. Souffleur is not affiliated with Apple."
+        # Updates: Sparkle 2, EdDSA-signed disk images, feed on the website.
+        SUFeedURL: https://getsouffleur.vercel.app/appcast.xml
+        SUPublicEDKey: "SPARKLE_PUBLIC_KEY"
+        SUVerifyUpdateBeforeExtraction: true
+        SUEnableAutomaticChecks: true
+        NSMicrophoneUsageDescription: Souffleur listens to your voice to scroll the script as you speak. The sound never leaves your Mac.
+        NSSpeechRecognitionUsageDescription: Souffleur recognizes your words on your Mac to keep your place in the script.
+        NSLocalNetworkUsageDescription: The remote lets your phone, on the same network, control the prompter.
+        CFBundleURLTypes:
+          - CFBundleURLName: ch.rubencatalao.souffleur
+            CFBundleURLSchemes: [souffleur]
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Script
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes:
+              - public.plain-text
+              - net.daringfireball.markdown
+              - public.rtf
+              - org.openxmlformats.wordprocessingml.document
+              - org.openxmlformats.presentationml.presentation
+              - com.adobe.pdf
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ch.rubencatalao.souffleur
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
