@@ -10,7 +10,7 @@ public struct LibraryView: View {
     @State private var search = ""
     @State private var isTargeted = false
     @Environment(\.openWindow) private var openWindow
-    @AppStorage(Preferences.Key.mode) private var mode = ScrollMode.auto.rawValue
+    @AppStorage(Preferences.Key.mode) private var mode = ScrollMode.pace.rawValue
     @AppStorage(Preferences.Key.placement) private var placement = PrompterPlacement.notch.rawValue
     @AppStorage(Preferences.Key.wordsPerMinute) private var pace = Pace.conversational
     @AppStorage(Preferences.Key.lastSummary) private var lastSummary = ""

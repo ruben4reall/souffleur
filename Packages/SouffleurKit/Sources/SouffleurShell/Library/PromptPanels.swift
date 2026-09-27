@@ -38,33 +38,37 @@ struct PressStyle: ButtonStyle {
     }
 }
 
-/// Below the script: the speed, from tortoise to hare, and the switch to follow the voice instead.
+/// Below the script: the speed, from tortoise to hare, and the switch that stops the script whenever you stop talking.
+/// Voice Follow, chosen from the toolbar, takes the speed over: the script then moves with your words.
 struct SpeedPanel: View {
     let document: ScriptDocument
     @Binding var pace: Double
     @Binding var mode: String
     let lastSummary: String
 
-    private var follows: Binding<Bool> {
-        Binding(get: { mode == ScrollMode.voice.rawValue }, set: { mode = $0 ? ScrollMode.voice.rawValue : ScrollMode.auto.rawValue })
+    private var waitsForVoice: Binding<Bool> {
+        Binding(get: { ScrollMode(rawValue: mode)?.listens == true },
+                set: { mode = $0 ? ScrollMode.pace.rawValue : ScrollMode.auto.rawValue })
     }
 
     var body: some View {
         let words = document.wordCount
         let voice = mode == ScrollMode.voice.rawValue
+        let manual = mode == ScrollMode.manual.rawValue
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("Speed", bundle: .module)
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
-                Toggle(isOn: follows) {
-                    Label(String(localized: "Follow my voice", bundle: .module), systemImage: "waveform")
+                Toggle(isOn: waitsForVoice) {
+                    Label(String(localized: "Pause when I stop talking", bundle: .module), systemImage: "waveform")
                         .font(.system(size: 12, weight: .medium))
                 }
                 .toggleStyle(.switch)
                 .controlSize(.small)
                 .tint(Theme.accent)
-                .help(String(localized: "The script follows your words, recognised on your Mac, instead of a steady speed.", bundle: .module))
+                .disabled(voice || manual)
+                .help(String(localized: "The script rolls at this speed while you speak and waits as soon as you stop. Your voice is heard on your Mac and never recorded.", bundle: .module))
             }
             HStack(spacing: 12) {
                 Image(systemName: "tortoise.fill")
@@ -74,11 +78,13 @@ struct SpeedPanel: View {
                 Image(systemName: "hare.fill")
                     .foregroundStyle(.secondary)
             }
-            .disabled(voice)
-            .opacity(voice ? 0.4 : 1)
+            .disabled(voice || manual)
+            .opacity(voice || manual ? 0.4 : 1)
             HStack(spacing: 12) {
                 Text(voice
-                     ? String(localized: "Follows your voice · \(words) words", bundle: .module)
+                     ? String(localized: "Follows your words · \(words) words", bundle: .module)
+                     : manual
+                     ? String(localized: "Moves only when you move it · \(words) words", bundle: .module)
                      : String(localized: "\(Int(pace.rounded())) words a minute · \(words) words · \(Pace.clock(Pace.readingTime(words: words, wordsPerMinute: pace)))", bundle: .module))
                 Spacer()
                 if !lastSummary.isEmpty {

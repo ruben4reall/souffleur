@@ -199,7 +199,7 @@ public enum Preferences {
     }
 
     nonisolated(unsafe) public static let defaults: [String: Any] = [
-        Key.mode: ScrollMode.auto.rawValue,
+        Key.mode: ScrollMode.pace.rawValue,
         Key.placement: PrompterPlacement.notch.rawValue,
         Key.wordsPerMinute: Pace.conversational,
         Key.fontSize: 21.0,
@@ -233,7 +233,7 @@ public enum Preferences {
     private static var store: UserDefaults { .standard }
 
     public static var mode: ScrollMode {
-        get { ScrollMode(rawValue: store.string(forKey: Key.mode) ?? "") ?? .auto }
+        get { ScrollMode(rawValue: store.string(forKey: Key.mode) ?? "") ?? .pace }
         set { store.set(newValue.rawValue, forKey: Key.mode) }
     }
 

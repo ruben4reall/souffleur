@@ -156,8 +156,8 @@ public final class ScriptStore {
     # Welcome to Souffleur
     Hello, and thank you for trying Souffleur. [smile]
     Your script rolls right under your camera, so you can read it and still look your audience in the eye.
-    Press play, then move the speed until the words arrive just as you need them.
-    Turn on Follow my voice, and the script follows your words instead, line by line. When you pause, it waits for you. [pause]
+    Press play and start speaking. When you stop talking, the script stops with you, and it rolls on as soon as you speak again.
+    Move the speed until the words arrive just as you need them. Or choose Voice Follow, and the script follows your words, line by line. [pause]
 
     # Make it yours
     Write your own script in this window, or drop a document on it: a text file, a Word document, a PDF, or the speaker notes of a presentation.

@@ -162,7 +162,7 @@ private struct PrompterPane: View {
             Section {
                 Toggle(String(localized: "Hide from screen sharing and recordings", bundle: .module), isOn: $hiddenFromCapture)
             } footer: {
-                Text("Apps that respect macOS's capture protection won't see the prompter. Since macOS 15, some screen sharing and recording apps capture it anyway: share a window rather than your whole screen to be sure.", bundle: .module)
+                Text("The prompter stays on your screen and out of screenshots, screen recordings and screen sharing. Turn this off to show it in a tutorial.", bundle: .module)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -192,7 +192,7 @@ private struct PrompterPane: View {
 }
 
 private struct VoicePane: View {
-    @AppStorage(Preferences.Key.mode) private var mode = ScrollMode.auto.rawValue
+    @AppStorage(Preferences.Key.mode) private var mode = ScrollMode.pace.rawValue
     @AppStorage(Preferences.Key.voiceLanguage) private var language = "auto"
     @AppStorage(Preferences.Key.wordsPerMinute) private var pace = Pace.conversational
     @State private var locales: [Locale] = []
