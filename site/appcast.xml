@@ -3,6 +3,51 @@
     <channel>
         <title>Souffleur</title>
         <item>
+            <title>1.2.0</title>
+            <pubDate>Sun, 27 Sep 2026 23:47:15 +0200</pubDate>
+            <link>https://getsouffleur.vercel.app</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/ruben4reall/souffleur/releases</sparkle:fullReleaseNotesLink>
+            <sparkle:version>1.2.0</sparkle:version>
+            <sparkle:shortVersionString>1.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[The prompter now hangs just below the notch and leaves the menu bar free, and every feature went through a full review.
+If you use 1.1.0, update: pressing play in Voice Pace, its default, closed the app.
+
+- **Below the notch**: the prompter hangs from the notch's lower edge and never covers the menu bar, whose items and
+  whatever other apps show beside the camera stay free. The time and the voice move to a band at its top.
+- **Other notch apps**: the prompter stays in front of their expanded views while it is open, and Souffleur tells
+  them when it opens and closes (two distributed notifications) so they can step aside.
+- **Fit in**: one click in the speed card sets the speed so the script lasts exactly 30 seconds, a minute, two, or
+  another usual length.
+- **Use my pace**: after a take read at another pace than the speed set, the summary offers to roll at the reader's
+  own pace from then on.
+- The welcome window says what Souffleur does now: it hangs from the notch, stops when you stop, and stays out of
+  screen recordings.
+
+Fixed, after a full review of every feature:
+
+- **Souffleur no longer quits when the microphone starts.** In 1.1.0, pressing play in Voice Pace (the default) or
+  Voice Follow closed the app: the block the audio thread calls belonged to the main actor, and Swift's isolation
+  check stopped the app on the first buffer.
+- The buttons shown when the pointer rests on the prompter (restart, slower, pause, faster, close) work again: a click
+  on them used to pause the script instead.
+- Moving a line back or on while the script rolls (Page Up, Page Down, ⌃⌥⌘← and →, the phone remote) no longer
+  freezes it.
+- Auto Scroll and Voice Pace roll at the speed set: they ran 13 to 24% slow, so Fit in and the time left were off.
+- The phone remote no longer drops a request now and then.
+- A take started right after another could end at once.
+- The coach counts the last line: a full read shows 100%.
+- Voice Follow finds the language's model in another region when yours has none (English on a Mac set to
+  Switzerland).
+- Two-finger scrolling on the prompter follows the direction set in System Settings.
+- A document dropped on the script is imported instead of its path being typed in, and a web link dropped on the
+  window is no longer fetched.
+- Choosing another mode during a take applies at once.
+- With the Paper colours the notch prompter stays black and readable; Show the timer applies to every placement.
+]]></description>
+            <enclosure url="https://github.com/ruben4reall/souffleur/releases/download/v1.2.0/Souffleur-1.2.0.dmg" length="3283851" type="application/octet-stream" sparkle:edSignature="P8IYdji1eN3CAyub9xFMAn3r1Wmyt1wH6l7Kpz6DE+cs45EyjAlNc0l8ByjJVrK3R8kqO7fSgqyiPDi+QGTtBg=="/>
+        </item>
+        <item>
             <title>1.1.0</title>
             <pubDate>Sun, 27 Sep 2026 22:06:11 +0200</pubDate>
             <link>https://getsouffleur.vercel.app</link>
