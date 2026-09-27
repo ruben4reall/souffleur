@@ -2,6 +2,21 @@
 
 Each release's section is what Souffleur's update window and the GitHub release show. Dates are in ISO format.
 
+## 1.1.0 (2026-09-27)
+
+Souffleur now looks and behaves like the notch prompters people already know, and keeps everything it adds.
+
+- **Stops when you stop**: Voice Pace is the new default. Press play and speak: the script rolls at your speed and
+  waits as soon as you go quiet. The switch in the speed card turns it off.
+- **A new prompter**: compact, lit from below with a soft light and a faint halo beneath it, the line being read in
+  the middle with long fades above and below. On a screen without a notch it hangs from the menu bar.
+- **Stage light colours**: violet, ocean, ember, mint or gold, or none, in Settings, Prompter.
+- **A new window**: a big play button on the script, and a speed card from tortoise to hare.
+- **Invisible in screen recordings**: checked on macOS 26.5 with the Mac's own screenshots and recordings and with
+  ScreenCaptureKit, which screen recorders and meeting apps use. Settings and the README now say what was measured.
+- **Shortcuts**: Settings says when another app already holds one of Souffleur's shortcuts.
+- **Phone remote**: requests time out, and the number of connections is capped.
+
 ## 1.0.0 (2026-09-27)
 
 The first release of Souffleur: a teleprompter that lives in the MacBook notch, free and open source under the MIT
