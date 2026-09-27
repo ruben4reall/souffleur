@@ -8,14 +8,23 @@ import SouffleurShell
 ///   -SouffleurDemoVoice YES                    reads it aloud in voice follow, from a scripted transcript
 ///   -SouffleurDemoStop <word>                  stops reading at that word, to capture a take in progress
 ///   -SouffleurDemoHover YES                    shows the controls, as when the pointer rests on the prompter
+///   -SouffleurDemoBlank YES                    shows the prompter without its text
+///   -SouffleurDemoStrip <png>                  writes the welcome script as the prompter lays it out, and quits
 @MainActor
 enum Demo {
     static func runIfAsked(_ app: Souffleur) {
         let defaults = UserDefaults.standard
+        if let strip = defaults.string(forKey: "SouffleurDemoStrip") {
+            let text = app.store.documents.first(where: { $0.text.hasPrefix("# Welcome to Souffleur") })?.text ?? ""
+            try? DemoRenderer.renderStrip(of: text, width: Preferences.notchWidth, to: URL(fileURLWithPath: strip))
+            NSApp.terminate(nil)
+            return
+        }
         guard let place = defaults.string(forKey: "SouffleurDemo").flatMap(PrompterPlacement.init(rawValue:)) else { return }
         app.prompter.placementOverride = place
         app.prompter.demoVoice = defaults.bool(forKey: "SouffleurDemoVoice")
         app.prompter.demoStop = defaults.object(forKey: "SouffleurDemoStop") != nil ? defaults.integer(forKey: "SouffleurDemoStop") : nil
+        app.prompter.demoBlank = defaults.bool(forKey: "SouffleurDemoBlank")
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             app.prompt(text: app.store.documents.first(where: { $0.text.hasPrefix("# Welcome to Souffleur") })?.text ?? "", title: "Welcome to Souffleur")
         }

@@ -32,6 +32,8 @@ public final class PrompterController {
     public var demoStop: Int?
     /// A place for the next takes that leaves the user's setting alone, for demos.
     public var placementOverride: PrompterPlacement?
+    /// Shows the prompter without its text, for a picture of the empty prompter.
+    public var demoBlank = false
     private var demoTask: Task<Void, Never>?
 
     public init() {
@@ -80,6 +82,7 @@ public final class PrompterController {
         presentation.refresh()
         wire(presentation.text)
         presentation.text.load(script, style: PrompterStyle.current(fullScreen: placement == .fullScreen))
+        presentation.text.isHidden = demoBlank
         markVoicePlace()
         presentation.present()
         beginAfterCountdown()
