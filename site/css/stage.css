@@ -23,18 +23,21 @@
   --plum: #560048;
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --nav-h: 48px;
+  --max: 1240px;
+  --gutter: 50px;
   color-scheme: dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { background: var(--black); color: var(--white); font-family: var(--font); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; scroll-behavior: smooth; }
+html { background: var(--black); color: var(--white); font-family: var(--font); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 16px); }
 body { margin: 0; overflow-x: hidden; background: var(--black); }
 img { display: block; max-width: 100%; height: auto; }
 a { color: inherit; }
 code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .1); border-radius: 6px; padding: .08em .4em; white-space: nowrap; }
 :focus-visible { outline: 3px solid var(--violet-soft); outline-offset: 2px; border-radius: 6px; }
 .skip { position: absolute; left: 12px; top: -60px; z-index: 20; padding: 10px 16px; border-radius: 10px; background: var(--white); color: var(--black); font-weight: 600; text-decoration: none; }
-.skip:focus { top: 44px; }
+.skip:focus { top: 8px; z-index: 60; }
 
 /* Titles: white running into grey, lit from above; the second line may take the violet. */
 .title { display: flex; flex-direction: column; margin: 0; text-wrap: balance; font-weight: 600; font-size: clamp(46px, 8vw, 100px); line-height: 1.1; letter-spacing: -.025em; }
@@ -60,16 +63,18 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
   50% { box-shadow: 0 4px 16px rgba(124, 59, 255, .45), 0 0 0 12px rgba(208, 96, 201, 0); }
 }
 
-/* The menu bar, with the real prompter hanging from the camera. */
-.menubar { position: relative; z-index: 5; height: 34px; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; font-size: 13px; font-weight: 600; line-height: 16px; }
-.menubar-side { display: flex; align-items: center; gap: 22px; }
-.menubar-apple { width: 13px; height: 16px; flex: none; }
-.menubar-item { text-decoration: none; color: var(--white); opacity: .92; }
-.menubar-item:hover { opacity: 1; color: #fff; }
-.menubar-name { font-weight: 700; }
-.menubar-status svg { width: 15px; height: 12px; color: var(--white); }
-.menubar-clock { white-space: nowrap; }
-.menubar-light { position: absolute; top: 100%; left: 0; right: 0; height: 34px; background-image: linear-gradient(to bottom, var(--violet) -100%, transparent 100%); opacity: .25; pointer-events: none; }
+/* The navigation bar: the same as Pli's, black glass that stays at the top. */
+.nav { position: sticky; top: 0; z-index: 50; height: var(--nav-h); background: rgb(0 0 0 / .72); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid rgb(255 255 255 / .08); }
+.nav-inner { display: flex; align-items: center; gap: 28px; width: min(var(--max), 100% - var(--gutter) * 2); height: 100%; margin-inline: auto; }
+.nav-brand { display: flex; align-items: center; min-height: 32px; margin-right: auto; color: var(--white); font-size: 19px; font-weight: 600; letter-spacing: -.02em; text-decoration: none; }
+.nav-links { display: flex; gap: 2px; }
+.nav-links a { display: block; padding: 6px 10px; color: rgb(245 245 247 / .8); font-size: 13px; line-height: 20px; letter-spacing: -.01em; text-decoration: none; }
+.nav-links a:hover { color: var(--white); }
+.nav-cta { padding: 4px 14px; border-radius: 980px; background: var(--white); color: var(--black); font-size: 13px; line-height: 20px; font-weight: 500; text-decoration: none; }
+.nav-cta:hover { background: #fff; }
+
+/* The prompter hangs from the bar, as it hangs from the notch: the real app, empty, with its script rolling. */
+.hero-light { position: absolute; top: 0; left: 0; right: 0; height: 34px; background-image: linear-gradient(to bottom, var(--violet) -100%, transparent 100%); opacity: .25; pointer-events: none; }
 .prompter { position: absolute; top: 0; left: 50%; width: 453px; height: 190px; margin: 0 0 0 -226.5px; z-index: 2; transform-origin: top center; }
 .prompter-frame { width: 453px; height: 190px; }
 /* The text area of the prompter, exactly where the app draws it, with the app's own fades. */
@@ -81,7 +86,7 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
 @keyframes roll { to { transform: translateY(-50%); } }
 
 /* Hero */
-.hero { position: relative; z-index: 1; display: flex; align-items: center; min-height: 100vh; padding: 200px 50px 90px; margin-top: -34px; }
+.hero { position: relative; z-index: 1; display: flex; align-items: center; min-height: calc(100vh - var(--nav-h)); padding: 230px max(var(--gutter), calc((100% - var(--max)) / 2)) 90px; }
 .hero-copy { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 26px; max-width: 795px; }
 .hero-text { margin: 0; max-width: 640px; font-size: 20px; line-height: 1.3; }
 .hero-sub { color: var(--gray-2); margin-top: -14px; }
@@ -269,6 +274,7 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
 /* Narrower screens */
 @media (max-width: 1180px) {
   .hero { flex-direction: column; align-items: flex-start; gap: 40px; }
+  .hero-copy { max-width: 720px; }
   .hero-visual { position: relative; inset: auto; width: 100%; height: 440px; overflow: visible; }
   .lightfall { left: 0; width: 100%; }
   .badges { left: 50%; }
@@ -285,15 +291,11 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
   .open-inner { grid-template-columns: 1fr; }
   .open-card { aspect-ratio: auto; }
 }
-@media (max-width: 880px) {
-  .menubar-side .menubar-item:not(.menubar-name) { display: none; }
-  .menubar-status svg { display: none; }
-}
+@media (max-width: 834px) { .nav-links { display: none; } }
 @media (max-width: 640px) {
-  .menubar { padding: 0 14px; }
-  .menubar-name, .menubar-clock { display: none; }
+  :root { --gutter: 16px; --nav-h: 44px; }
   .prompter { transform: scale(.66); }
-  .hero { padding: 170px 16px 60px; }
+  .hero { padding-top: 170px; padding-bottom: 60px; }
   .hero-sub { margin-top: -10px; }
   .hero-visual { height: 400px; }
   .badge { width: 132px; border-radius: 18px; }
