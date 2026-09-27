@@ -17,7 +17,7 @@ const SIZES = {
   tablet: { width: 820, height: 1180, deviceScaleFactor: 1, mobile: true },
   phone: { width: 390, height: 844, deviceScaleFactor: 2, mobile: true },
 };
-const SECTIONS = ['story', 'voice', 'places', 'control', 'scripts', 'coach', 'settings', 'compare', 'privacy', 'open-source', 'faq', 'download'];
+const SECTIONS = ['story', 'voice', 'places', 'lights', 'control', 'scripts', 'coach', 'settings', 'compare', 'privacy', 'open-source', 'faq', 'download'];
 
 const { values } = parseArgs({ options: { only: { type: 'string' }, 'no-shots': { type: 'boolean' }, path: { type: 'string', default: '/' }, wrapped: { type: 'boolean' }, url: { type: 'string' } } });
 const WRAPPED = join(SITE_DIR, 'artifact-check.html');

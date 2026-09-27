@@ -22,6 +22,9 @@ at() { echo "1 + 2.4 + $1 * 0.4 + 1.2" | bc; }
 
 echo "Notch:"
 for stop in 4 9 14 19 24 29; do run -SouffleurDemo notch -SouffleurDemoVoice YES -SouffleurDemoStop "$stop"; sleep "$(at "$stop")"; shoot_panel "read-$stop"; done
+for light in violet ocean ember mint gold; do
+  run -SouffleurDemo notch -SouffleurDemoVoice YES -SouffleurDemoStop 19 -stageLight "$light"; sleep "$(at 19)"; shoot_panel "light-$light"
+done
 run -SouffleurDemo notch -SouffleurDemoVoice YES -SouffleurDemoStop 16 -SouffleurDemoHover YES; sleep "$(at 16)"; shoot_panel controls
 run -SouffleurDemo notch -SouffleurDemoVoice YES; sleep 2.3; shoot_panel countdown
 run -SouffleurDemo notch -SouffleurDemoVoice YES; sleep 58; shoot_panel summary
@@ -51,7 +54,7 @@ sleep "$(at 22)"
 pkill -x Souffleur || true
 
 echo "WebP:"
-for f in "$OUT"/read-*.png "$OUT"/controls.png "$OUT"/countdown.png "$OUT"/summary.png; do cwebp -quiet -q 92 -alpha_q 100 "$f" -o "site/assets/notch/$(basename "$f" .png).webp"; done
+for f in "$OUT"/read-*.png "$OUT"/light-*.png "$OUT"/controls.png "$OUT"/countdown.png "$OUT"/summary.png; do cwebp -quiet -q 92 -alpha_q 100 "$f" -o "site/assets/notch/$(basename "$f" .png).webp"; done
 cwebp -quiet -q 90 -alpha_q 100 "$OUT/floating.png" -o site/assets/app/floating.webp
 cwebp -quiet -q 86 -resize 1800 0 "$OUT/fullscreen.png" -o site/assets/app/fullscreen.webp
 for f in "$OUT"/library.png "$OUT"/settings-*.png; do cwebp -quiet -q 88 "$f" -o "site/assets/app/$(basename "$f" .png | tr '[:upper:]' '[:lower:]').webp"; done
