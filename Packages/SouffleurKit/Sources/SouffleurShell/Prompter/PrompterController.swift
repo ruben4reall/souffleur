@@ -86,6 +86,7 @@ public final class PrompterController {
         presentation.text.isHidden = demoBlank
         markVoicePlace()
         presentation.present()
+        Neighbours.post(Neighbours.didOpen, placement: placement)
         beginAfterCountdown()
         onChange?()
     }
@@ -110,6 +111,7 @@ public final class PrompterController {
         } else {
             closing?.closeNow()
         }
+        if closing != nil { Neighbours.post(Neighbours.didClose) }
         onChange?()
     }
 
@@ -526,4 +528,16 @@ public final class PrompterController {
 
     /// The line under the camera, for the remote.
     public var currentLine: String { presentation?.text.currentLine() ?? "" }
+}
+
+/// Tells other apps, notch apps first, when the prompter opens and closes, so they can step aside while it is open:
+/// two distributed notifications that carry nothing but the placement.
+public enum Neighbours {
+    public static let didOpen = Notification.Name("ch.rubencatalao.souffleur.prompterDidOpen")
+    public static let didClose = Notification.Name("ch.rubencatalao.souffleur.prompterDidClose")
+
+    static func post(_ name: Notification.Name, placement: PrompterPlacement? = nil) {
+        DistributedNotificationCenter.default().postNotificationName(
+            name, object: nil, userInfo: placement.map { ["placement": $0.rawValue] }, deliverImmediately: true)
+    }
 }

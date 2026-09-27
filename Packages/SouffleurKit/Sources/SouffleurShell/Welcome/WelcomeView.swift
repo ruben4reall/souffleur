@@ -53,8 +53,9 @@ public struct WelcomeView: View {
                     .foregroundStyle(.secondary)
             }
             VStack(alignment: .leading, spacing: 14) {
-                feature("waveform", String(localized: "It follows your voice", bundle: .module), String(localized: "The words you say light up and the script keeps up with you.", bundle: .module))
-                feature("macbook", String(localized: "It lives in the notch", bundle: .module), String(localized: "Read right under the lens and keep eye contact.", bundle: .module))
+                feature("macbook", String(localized: "It hangs from the notch", bundle: .module), String(localized: "Read right under the lens and keep eye contact.", bundle: .module))
+                feature("waveform", String(localized: "It stops when you stop", bundle: .module), String(localized: "The script rolls while you talk and waits the moment you pause.", bundle: .module))
+                feature("eye.slash", String(localized: "Only you can see it", bundle: .module), String(localized: "Screen recordings and screen sharing leave it out.", bundle: .module))
                 feature("iphone.gen3", String(localized: "It's yours to drive", bundle: .module), String(localized: "Shortcuts, a presentation clicker or your phone.", bundle: .module))
             }
             .padding(.top, 10)
@@ -130,12 +131,12 @@ public struct WelcomeView: View {
                 .foregroundStyle(Theme.accent)
             VStack(spacing: 6) {
                 Text("You're ready.", bundle: .module).font(.system(size: 24, weight: .bold))
-                Text("Press Prompt, look at the camera, and speak.", bundle: .module).foregroundStyle(.secondary)
+                Text("Press play, look at the camera, and speak.", bundle: .module).foregroundStyle(.secondary)
             }
             VStack(spacing: 8) {
-                keys("⌃⌥⌘P", String(localized: "Prompt, play or pause, from any app", bundle: .module))
+                keys("⌃⌥⌘P", String(localized: "Play or pause, from any app", bundle: .module))
                 keys("⌃⌥⌘H", String(localized: "Show or hide the prompter", bundle: .module))
-                keys("⌘↩", String(localized: "Prompt the script you're writing", bundle: .module))
+                keys("⌘↩", String(localized: "Play the script you're writing", bundle: .module))
             }
             .padding(16)
             .background(RoundedRectangle(cornerRadius: 14).fill(Color.primary.opacity(0.04)))

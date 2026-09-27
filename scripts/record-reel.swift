@@ -98,12 +98,13 @@ Task {
         config.showsCursor = false
         config.shouldBeOpaque = false
         config.ignoreShadowsSingleWindow = false
-        // The window's place in the video: centred, its top on the top edge, at 1.5x.
+        // The window's place in the video: centred, as far below the top edge as it is on screen, at 1.5x.
         let windowSize = window.frame.size
+        let hang = window.frame.minY
         let place: (CIImage) -> CIImage = { frame in
             let scaled = frame.transformed(by: CGAffineTransform(scaleX: scale / 2, y: scale / 2))
             let x = (size.width - windowSize.width * scale) / 2
-            let y = size.height - windowSize.height * scale
+            let y = size.height - (hang + windowSize.height) * scale
             return scaled.transformed(by: CGAffineTransform(translationX: x, y: y)).composited(over: desktopCrop)
         }
         let recorder = try Recorder(out: out, size: size, context: context, poster: posterURL, place: place)

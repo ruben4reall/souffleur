@@ -24,8 +24,8 @@ struct PlayButton: View {
         .keyboardShortcut(.return, modifiers: .command)
         .disabled(!app.canPrompt)
         .opacity(app.canPrompt ? 1 : 0.45)
-        .help(rolling ? String(localized: "Pause (⌘↩)", bundle: .module) : String(localized: "Prompt this script (⌘↩, or ⌃⌥⌘P from any app)", bundle: .module))
-        .accessibilityLabel(rolling ? String(localized: "Pause", bundle: .module) : String(localized: "Prompt", bundle: .module))
+        .help(rolling ? String(localized: "Pause (⌘↩)", bundle: .module) : String(localized: "Play this script (⌘↩, or ⌃⌥⌘P from any app)", bundle: .module))
+        .accessibilityLabel(rolling ? String(localized: "Pause", bundle: .module) : String(localized: "Play", bundle: .module))
     }
 }
 

@@ -48,7 +48,7 @@ struct ControlBar: View {
 struct PrompterOverlay: View {
     let state: PrompterState
     @AppStorage(Preferences.Key.stageLight) private var light = StageLight.violet.rawValue
-    /// The floating and full screen prompters show the timer and the level inside; the notch shows them beside the camera.
+    /// The floating and full screen prompters show the timer and the level over the text; the notch in a band above it.
     let showsStatusRow: Bool
     var scale: CGFloat = 1
 
@@ -125,13 +125,15 @@ struct PrompterOverlay: View {
     }
 }
 
-/// Elapsed and remaining time on the left, the microphone or the pace on the right.
+/// Elapsed and remaining time on the left (unless turned off in Settings), the microphone or the pace on the right.
 struct StatusRow: View {
     let state: PrompterState
+    @AppStorage(Preferences.Key.showsTimer) private var showsTimer = true
 
     var body: some View {
         HStack {
             TimerLabel(state: state)
+                .opacity(showsTimer ? 1 : 0)
             Spacer()
             LevelLabel(state: state)
         }

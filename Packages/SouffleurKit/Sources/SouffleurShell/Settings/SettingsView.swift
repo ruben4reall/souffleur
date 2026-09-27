@@ -105,7 +105,7 @@ private struct PrompterPane: View {
                     }
                 }
             } footer: {
-                Text("The light around the prompter, and the colour of the next word. It brightens with your voice.", bundle: .module)
+                Text("The light inside the prompter and the halo beneath it, and the colour of the next word. It brightens with your voice.", bundle: .module)
                     .foregroundStyle(.secondary)
             }
             Section(String(localized: "Place", bundle: .module)) {
