@@ -1,0 +1,280 @@
+import AppKit
+import SouffleurCore
+import SwiftUI
+
+/// The controls that appear while the pointer is on the prompter: restart, slower, play or pause, faster, close.
+struct ControlBar: View {
+    let state: PrompterState
+
+    var body: some View {
+        HStack(spacing: 4) {
+            button("arrow.counterclockwise", help: "Restart", size: 12) { state.actions.restart() }
+            button("minus", help: "Slower", size: 12) { state.actions.slower() }
+                .disabled(state.mode == .voice || state.mode == .manual)
+            Button(action: { state.actions.toggle() }) {
+                Image(systemName: state.isRolling ? "pause.fill" : "play.fill")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.black)
+                    .frame(width: 36, height: 36)
+                    .background(Circle().fill(Theme.lamp))
+                    .contentTransition(.symbolEffect(.replace))
+            }
+            .buttonStyle(.plain)
+            .help(state.isRolling ? "Pause" : "Play")
+            button("plus", help: "Faster", size: 12) { state.actions.faster() }
+                .disabled(state.mode == .voice || state.mode == .manual)
+            button("xmark", help: "Close", size: 11) { state.actions.close() }
+        }
+        .padding(4)
+        .background(Capsule().fill(Color(white: 0.13).opacity(0.94)))
+        .overlay(Capsule().strokeBorder(Color.white.opacity(0.08)))
+        .shadow(color: .black.opacity(0.5), radius: 10, y: 4)
+    }
+
+    private func button(_ symbol: String, help: String, size: CGFloat, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: size, weight: .bold))
+                .foregroundStyle(Color.white.opacity(0.85))
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(Theme.fill))
+        }
+        .buttonStyle(.plain)
+        .help(help)
+    }
+}
+
+/// Everything drawn over the text: the countdown, notes, the summary of a take, the controls.
+struct PrompterOverlay: View {
+    let state: PrompterState
+    /// The floating and full screen prompters show the timer and the level inside; the notch shows them beside the camera.
+    let showsStatusRow: Bool
+    var scale: CGFloat = 1
+
+    var body: some View {
+        ZStack {
+            if showsStatusRow {
+                VStack {
+                    StatusRow(state: state)
+                        .padding(.horizontal, 18)
+                        .padding(.top, 12)
+                    Spacer()
+                }
+            }
+            center
+            VStack {
+                Spacer()
+                if state.isHovering, state.summary == nil {
+                    ControlBar(state: state)
+                        .scaleEffect(scale)
+                        .padding(.bottom, 12)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            if let flash = state.flash {
+                Text(flash)
+                    .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Capsule().fill(Color(white: 0.16).opacity(0.95)))
+                    .transition(.opacity)
+            }
+        }
+        .animation(.spring(duration: 0.3, bounce: 0.15), value: state.isHovering)
+        .animation(.easeInOut(duration: 0.2), value: state.flash)
+    }
+
+    @ViewBuilder private var center: some View {
+        switch state.phase {
+        case .countdown(let number):
+            Text("\(number)")
+                .font(.system(size: 64 * scale, weight: .semibold, design: .rounded))
+                .foregroundStyle(Theme.lamp)
+                .contentTransition(.numericText(countsDown: true))
+                .shadow(color: Theme.lamp.opacity(0.45), radius: 18)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.black.opacity(0.72))
+                .animation(.spring(duration: 0.35), value: number)
+        case .finished:
+            if let summary = state.summary {
+                SummaryCard(summary: summary, state: state)
+                    .scaleEffect(scale)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.black.opacity(0.8))
+                    .transition(.opacity)
+            }
+        default:
+            if let failure = state.failure {
+                MessageCard(failure: failure, state: state)
+                    .scaleEffect(scale)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.black.opacity(0.78))
+            } else if let status = state.status {
+                Label(status, systemImage: "waveform")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Theme.secondaryText)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Capsule().fill(Color(white: 0.14)))
+            }
+        }
+    }
+}
+
+/// Elapsed and remaining time on the left, the microphone or the pace on the right.
+struct StatusRow: View {
+    let state: PrompterState
+
+    var body: some View {
+        HStack {
+            TimerLabel(state: state)
+            Spacer()
+            LevelLabel(state: state)
+        }
+    }
+}
+
+struct TimerLabel: View {
+    let state: PrompterState
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Circle()
+                .fill(state.isRolling ? Theme.lamp : Color.white.opacity(0.35))
+                .frame(width: 5, height: 5)
+            Text(Pace.clock(state.elapsed))
+                .foregroundStyle(Color.white.opacity(0.9))
+            Text("−" + Pace.clock(state.remaining))
+                .foregroundStyle(Theme.tertiaryText)
+        }
+        .font(Theme.Font.figure)
+        .fixedSize()
+    }
+}
+
+struct LevelLabel: View {
+    let state: PrompterState
+
+    var body: some View {
+        HStack(spacing: 6) {
+            if state.mode.listens {
+                LevelMeter(level: state.isRolling ? state.level : 0, speaking: state.isSpeaking && state.isRolling)
+            }
+            if let pace = state.mode == .voice ? state.measuredPace : state.wordsPerMinute, state.mode != .manual {
+                Text("\(Int(pace.rounded())) wpm")
+                    .font(Theme.Font.figure)
+                    .foregroundStyle(Theme.tertiaryText)
+            }
+        }
+        .fixedSize()
+    }
+}
+
+/// Four bars that rise with the voice, lit in the lamp colour while the reader speaks.
+struct LevelMeter: View {
+    let level: Float
+    let speaking: Bool
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 2) {
+            ForEach(0..<4, id: \.self) { index in
+                let weights: [Float] = [0.6, 1, 0.8, 0.5]
+                let height = 3 + CGFloat(min(1, level * weights[index] * 1.4)) * 9
+                Capsule()
+                    .fill(speaking ? Theme.lamp : Color.white.opacity(0.4))
+                    .frame(width: 2.5, height: height)
+            }
+        }
+        .frame(height: 12)
+        .animation(.easeOut(duration: 0.12), value: level)
+    }
+}
+
+struct SummaryCard: View {
+    let summary: TakeSummary
+    let state: PrompterState
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Text("That's a take.")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.white)
+            HStack(spacing: 18) {
+                figure(Pace.clock(summary.duration), "time")
+                figure("\(Int(summary.averageWordsPerMinute.rounded()))", "words a minute")
+                figure("\(Int((summary.coverage * 100).rounded()))%", "of the script")
+                if summary.fillers > 0 { figure("\(summary.fillers)", summary.fillers == 1 ? "filler" : "fillers") }
+            }
+            HStack(spacing: 8) {
+                Button("Again") { state.actions.restart() }
+                    .buttonStyle(PillButtonStyle(primary: true))
+                Button("Close") { state.actions.close() }
+                    .buttonStyle(PillButtonStyle(primary: false))
+            }
+        }
+    }
+
+    private func figure(_ value: String, _ label: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.system(size: 17, weight: .semibold, design: .rounded).monospacedDigit())
+                .foregroundStyle(Theme.lamp)
+            Text(label)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(Theme.secondaryText)
+        }
+    }
+}
+
+struct MessageCard: View {
+    let failure: ListenerFailure
+    let state: PrompterState
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Text(failure.message)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 360)
+            HStack(spacing: 8) {
+                if let url = failure.settingsURL {
+                    Button("Open System Settings") { state.actions.openSettings(url) }
+                        .buttonStyle(PillButtonStyle(primary: true))
+                }
+                Button("Use Auto Scroll") { state.actions.useAutoScroll() }
+                    .buttonStyle(PillButtonStyle(primary: false))
+            }
+        }
+        .padding(16)
+    }
+}
+
+struct PillButtonStyle: ButtonStyle {
+    let primary: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(primary ? Color.black : Color.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 7)
+            .background(Capsule().fill(primary ? Theme.lamp : Theme.raisedFill))
+            .opacity(configuration.isPressed ? 0.75 : 1)
+    }
+}
+
+/// A hosting view that lets clicks and gestures through to the text, except on the controls it shows.
+final class PassthroughHostingView<Content: View>: NSHostingView<Content> {
+    /// Returns the areas, in this view's coordinates, that take the pointer right now.
+    var interactiveRects: () -> [NSRect] = { [] }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        let local = convert(point, from: superview)
+        guard interactiveRects().contains(where: { $0.contains(local) }) else { return nil }
+        return super.hitTest(point)
+    }
+
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+}

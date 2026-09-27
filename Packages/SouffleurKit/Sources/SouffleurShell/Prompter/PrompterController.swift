@@ -1,0 +1,474 @@
+import AppKit
+import SouffleurCore
+
+/// Runs a take: puts the prompter on screen, counts down, listens, keeps the place and rolls the text, then shows
+/// how it went. Nothing runs while no take is on.
+@MainActor
+public final class PrompterController {
+    public let state = PrompterState()
+    /// Called whenever what the remote or the menus show may have changed.
+    public var onChange: (() -> Void)?
+
+    private var presentation: PrompterPresentation?
+    private var placement: PrompterPlacement = .notch
+    private(set) var script = Script("")
+    private var sourceText = ""
+    private var tracker: VoiceTracker?
+    private let listener = Listener()
+    private var isListening = false
+    private var recorder: TakeRecorder?
+    private var meter = PaceMeter()
+    private var clock: Timer?
+    private var rollingSince: Date?
+    private var elapsedBefore: TimeInterval = 0
+    private var countdown: Task<Void, Never>?
+    private var autoClose: Task<Void, Never>?
+    private var flashReset: Task<Void, Never>?
+    private var lastOffsetReport: CFTimeInterval = 0
+    private var observers: [NSObjectProtocol] = []
+    /// Reads the script from a scripted transcript instead of the microphone, for screenshots and demos.
+    public var demoVoice = false
+    /// With `demoVoice`, the word at which the scripted reading stops.
+    public var demoStop: Int?
+    private var demoTask: Task<Void, Never>?
+
+    public init() {
+        state.actions = .init(
+            toggle: { [weak self] in self?.toggle() },
+            faster: { [weak self] in self?.faster() },
+            slower: { [weak self] in self?.slower() },
+            restart: { [weak self] in self?.restart() },
+            close: { [weak self] in self?.stop() },
+            openSettings: { NSWorkspace.shared.open($0) },
+            useAutoScroll: { [weak self] in self?.switchMode(.auto) }
+        )
+        observers.append(NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.screensChanged() }
+        })
+    }
+
+    public var isActive: Bool { presentation != nil }
+    public var isRolling: Bool { state.phase == .rolling }
+
+    // MARK: Starting and stopping
+
+    /// Opens the prompter on a script and starts a take.
+    public func start(text: String, title: String) {
+        let script = Script(text)
+        guard !script.isEmpty else { return }
+        if presentation != nil { tearDown(animated: false) }
+        self.script = script
+        sourceText = text
+        placement = Preferences.placement
+        state.title = title
+        state.mode = Preferences.mode
+        state.wordsPerMinute = Preferences.wordsPerMinute
+        resetTake()
+
+        let presentation: PrompterPresentation = switch placement {
+        case .notch: NotchPresentation(state: state)
+        case .floating: CardPresentation(state: state, fullScreen: false)
+        case .fullScreen: {
+            let card = CardPresentation(state: state, fullScreen: true)
+            card.onKey = { [weak self] event in self?.handleKey(event) ?? false }
+            return card
+        }()
+        }
+        self.presentation = presentation
+        presentation.refresh()
+        wire(presentation.text)
+        presentation.text.load(script, style: PrompterStyle.current(fullScreen: placement == .fullScreen))
+        markVoicePlace()
+        presentation.present()
+        beginAfterCountdown()
+        onChange?()
+    }
+
+    /// Closes the prompter and ends the take.
+    public func stop() {
+        tearDown(animated: true)
+    }
+
+    private func tearDown(animated: Bool) {
+        countdown?.cancel()
+        autoClose?.cancel()
+        stopListening()
+        stopClock()
+        tracker = nil
+        let closing = presentation
+        presentation = nil
+        state.phase = .idle
+        state.isHovering = false
+        if animated {
+            closing?.dismiss {}
+        } else {
+            closing?.dismiss {}
+        }
+        onChange?()
+    }
+
+    private func resetTake() {
+        state.phase = .idle
+        state.summary = nil
+        state.failure = nil
+        state.status = nil
+        state.progress = 0
+        state.elapsed = 0
+        state.measuredPace = nil
+        state.remaining = Pace.readingTime(words: script.words.count, wordsPerMinute: state.wordsPerMinute)
+        elapsedBefore = 0
+        rollingSince = nil
+        meter.reset()
+        tracker = state.mode == .voice ? VoiceTracker(script: script, locale: voiceLocale) : nil
+    }
+
+    private var voiceLocale: Locale { Listener.locale(for: script.display, preference: Preferences.voiceLanguage) }
+
+    private func beginAfterCountdown() {
+        countdown?.cancel()
+        guard Preferences.countdown else { return begin() }
+        countdown = Task { [weak self] in
+            for number in [3, 2, 1] {
+                self?.state.phase = .countdown(number)
+                try? await Task.sleep(for: .milliseconds(750))
+                if Task.isCancelled { return }
+            }
+            self?.begin()
+        }
+    }
+
+    private func begin() {
+        countdown?.cancel()
+        countdown = nil
+        state.phase = .rolling
+        rollingSince = Date()
+        recorder = TakeRecorder(totalWords: script.words.count, start: Date())
+        startClock()
+        switch state.mode {
+        case .voice: if demoVoice { readDemo() } else { startListening(recognize: true) }
+        case .pace: startListening(recognize: false)
+        case .auto: presentation?.text.setSpeed(autoSpeed, eased: true)
+        case .manual: break
+        }
+        onChange?()
+    }
+
+    /// Feeds the tracker the script's own words at a steady 150 words a minute, through the same path as the
+    /// recogniser.
+    private func readDemo() {
+        demoTask?.cancel()
+        let words = script.words.map(\.text)
+        demoTask = Task { [weak self] in
+            var heard: [String] = []
+            for (index, word) in words.enumerated() {
+                if let stop = self?.demoStop, index >= stop { break }
+                try? await Task.sleep(for: .milliseconds(400))
+                guard let self, !Task.isCancelled else { return }
+                heard.append(word)
+                self.state.level = Float.random(in: 0.45...0.85)
+                self.state.isSpeaking = true
+                self.heard(heard.suffix(10).joined(separator: " "), final: nil)
+            }
+        }
+    }
+
+    // MARK: Controls
+
+    public func toggle() {
+        switch state.phase {
+        case .idle: break
+        case .countdown: begin()
+        case .rolling: pause()
+        case .paused: resume()
+        case .finished: restart()
+        }
+    }
+
+    public func pause() {
+        guard state.phase == .rolling else { return }
+        state.phase = .paused
+        if let rollingSince { elapsedBefore += Date().timeIntervalSince(rollingSince) }
+        rollingSince = nil
+        presentation?.text.setSpeed(0, eased: true)
+        onChange?()
+    }
+
+    public func resume() {
+        guard state.phase == .paused else { return }
+        state.phase = .rolling
+        rollingSince = Date()
+        if state.mode == .auto { presentation?.text.setSpeed(autoSpeed, eased: true) }
+        onChange?()
+    }
+
+    public func restart() {
+        guard let presentation else { return }
+        autoClose?.cancel()
+        stopListening()
+        stopClock()
+        presentation.text.halt()
+        resetTake()
+        presentation.text.setOffset(0)
+        markVoicePlace()
+        beginAfterCountdown()
+        onChange?()
+    }
+
+    public func faster() { changePace(by: 10) }
+    public func slower() { changePace(by: -10) }
+
+    private func changePace(by step: Double) {
+        Preferences.wordsPerMinute += step
+        state.wordsPerMinute = Preferences.wordsPerMinute
+        if state.phase == .rolling, state.mode == .auto { presentation?.text.setSpeed(autoSpeed, eased: true) }
+        flash("\(Int(state.wordsPerMinute)) wpm")
+        onChange?()
+    }
+
+    /// Moves one line back or forward.
+    public func moveLine(_ direction: Int) {
+        guard let text = presentation?.text else { return }
+        let target = text.offset + CGFloat(direction) * text.style.lineHeight
+        if state.mode == .voice, var tracker {
+            tracker.jump(toWord: text.word(atOffset: max(0, target)))
+            self.tracker = tracker
+            markVoicePlace(glide: true)
+        } else {
+            text.glide(to: target)
+        }
+    }
+
+    /// Switches the running take to another mode, such as auto scroll when the microphone is off.
+    public func switchMode(_ mode: ScrollMode) {
+        state.failure = nil
+        stopListening()
+        state.mode = mode
+        tracker = mode == .voice ? VoiceTracker(script: script, locale: voiceLocale) : nil
+        if let text = presentation?.text, var tracker {
+            tracker.jump(toWord: text.word(atOffset: text.offset))
+            self.tracker = tracker
+        }
+        if state.phase == .rolling {
+            switch mode {
+            case .voice: startListening(recognize: true)
+            case .pace: startListening(recognize: false)
+            case .auto: presentation?.text.setSpeed(autoSpeed, eased: true)
+            case .manual: presentation?.text.setSpeed(0, eased: true)
+            }
+        }
+        onChange?()
+    }
+
+    private var autoSpeed: CGFloat {
+        guard let text = presentation?.text else { return 0 }
+        return Pace.pointsPerSecond(wordsPerMinute: state.wordsPerMinute, wordsPerLine: text.wordsPerLine, lineHeight: text.style.lineHeight)
+    }
+
+    private func flash(_ text: String) {
+        state.flash = text
+        flashReset?.cancel()
+        flashReset = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(1.2))
+            if !Task.isCancelled { self?.state.flash = nil }
+        }
+    }
+
+    /// Keys of the full screen prompter.
+    private func handleKey(_ event: NSEvent) -> Bool {
+        switch Int(event.keyCode) {
+        case 49: toggle()                       // Space
+        case 53: stop()                         // Escape
+        case 126: faster()                      // Up
+        case 125: slower()                      // Down
+        case 123, 116: moveLine(-1)             // Left, Page Up
+        case 124, 121: moveLine(1)              // Right, Page Down
+        case 15: restart()                      // R
+        default: return false
+        }
+        return true
+    }
+
+    // MARK: The text
+
+    private func wire(_ text: ScriptTextView) {
+        text.onClick = { [weak self] in self?.toggle() }
+        text.onNudge = { [weak self, weak text] delta in
+            guard let self, let text else { return }
+            text.setOffset(text.offset + delta)
+            if self.state.mode != .voice { self.offsetChanged(text.offset, force: true) }
+        }
+        text.onNudgeEnded = { [weak self, weak text] in
+            guard let self, let text, self.state.mode == .voice, var tracker = self.tracker else { return }
+            tracker.jump(toWord: text.word(atOffset: text.offset))
+            self.tracker = tracker
+            self.markVoicePlace()
+        }
+        text.onOffsetChanged = { [weak self] offset in self?.offsetChanged(offset, force: false) }
+        text.onSettled = { [weak self] in
+            guard let self, self.state.mode == .auto || self.state.mode == .pace, self.state.phase == .rolling else { return }
+            self.finish()
+        }
+    }
+
+    /// Auto scroll, voice pace and manual: the place follows the text on the reading line.
+    private func offsetChanged(_ offset: CGFloat, force: Bool) {
+        guard state.mode != .voice, let text = presentation?.text else { return }
+        let now = CACurrentMediaTime()
+        guard force || now - lastOffsetReport > 0.1 else { return }
+        lastOffsetReport = now
+        let lineStart = text.character(atOffset: offset)
+        text.mark(readUpTo: lineStart, next: nil)
+        let index = text.word(atOffset: offset)
+        recorder?.record(wordIndex: index, at: Date())
+        let end = text.endOffset
+        state.progress = end > 0 ? Double(offset / end) : 0
+        state.remaining = Pace.readingTime(words: script.words.count - index, wordsPerMinute: state.wordsPerMinute)
+        onChange?()
+    }
+
+    /// Voice follow: colours the words read and the next one, and moves the text to the line being read.
+    private func markVoicePlace(glide: Bool = false) {
+        guard let text = presentation?.text else { return }
+        guard state.mode == .voice, let tracker else {
+            text.mark(readUpTo: 0, next: nil)
+            return
+        }
+        let index = tracker.wordIndex
+        let words = script.words
+        let readEnd = index < words.count ? words[index].range.location : script.display.utf16.count
+        text.mark(readUpTo: readEnd, next: index < words.count ? words[index].range : nil)
+        if glide { text.glide(to: text.offset(forWord: index)) }
+        state.progress = words.isEmpty ? 0 : Double(index) / Double(words.count)
+    }
+
+    private func heard(_ recent: String, final: String?) {
+        if let final { recorder?.heard(final) }
+        guard state.phase == .rolling, state.mode == .voice, var tracker else { return }
+        guard tracker.hear(recent) else { return }
+        self.tracker = tracker
+        let now = Date()
+        meter.record(wordIndex: tracker.wordIndex, at: now)
+        recorder?.record(wordIndex: tracker.wordIndex, at: now)
+        state.measuredPace = meter.wordsPerMinute
+        state.remaining = Pace.readingTime(words: script.words.count - tracker.wordIndex, wordsPerMinute: state.measuredPace ?? state.wordsPerMinute)
+        markVoicePlace(glide: true)
+        onChange?()
+        if tracker.isFinished {
+            // Let the last word land before the summary.
+            Task { [weak self] in
+                try? await Task.sleep(for: .seconds(1.2))
+                if self?.state.phase == .rolling { self?.finish() }
+            }
+        }
+    }
+
+    private func finish() {
+        guard state.phase == .rolling || state.phase == .paused else { return }
+        if let rollingSince { elapsedBefore += Date().timeIntervalSince(rollingSince) }
+        rollingSince = nil
+        state.elapsed = elapsedBefore
+        stopListening()
+        stopClock()
+        presentation?.text.setSpeed(0, eased: false)
+        if let recorder {
+            var summary = recorder.finish(at: Date())
+            summary.duration = elapsedBefore
+            state.summary = summary
+            UserDefaults.standard.set(
+                "\(Pace.clock(summary.duration)) · \(Int(summary.averageWordsPerMinute.rounded())) wpm · \(Int((summary.coverage * 100).rounded()))%",
+                forKey: Preferences.Key.lastSummary
+            )
+        }
+        state.phase = .finished
+        state.progress = 1
+        state.remaining = 0
+        onChange?()
+        autoClose = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(12))
+            guard let self, !Task.isCancelled, self.state.phase == .finished, !self.state.isHovering else { return }
+            self.stop()
+        }
+    }
+
+    // MARK: Listening
+
+    private func startListening(recognize: Bool) {
+        stopListening()
+        isListening = true
+        let locale = voiceLocale
+        let vocabulary = Listener.vocabulary(of: script.words.map(\.text))
+        let listener = self.listener
+        Task { [weak self] in
+            await listener.start(recognize: recognize, locale: locale, vocabulary: vocabulary) { event in
+                MainActor.assumeIsolated { self?.handle(event) }
+            }
+        }
+    }
+
+    private func stopListening() {
+        demoTask?.cancel()
+        demoTask = nil
+        guard isListening else { return }
+        isListening = false
+        listener.stop()
+        state.level = 0
+        state.isSpeaking = false
+    }
+
+    private func handle(_ event: ListenerEvent) {
+        guard isListening else { return }
+        switch event {
+        case .level(let level, let speaking):
+            state.level = level
+            state.isSpeaking = speaking
+            if state.mode == .pace, state.phase == .rolling {
+                presentation?.text.setSpeed(speaking ? autoSpeed : 0, eased: true)
+            }
+        case .heard(let recent, let final):
+            heard(recent, final: final)
+        case .status(let status):
+            state.status = status
+        case .failed(let failure):
+            switch failure {
+            case .languageUnsupported:
+                flash(failure.message)
+                switchMode(.pace)
+            default:
+                state.failure = failure
+                stopListening()
+            }
+        }
+    }
+
+    // MARK: Time
+
+    private func startClock() {
+        stopClock()
+        clock = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.tick() }
+        }
+    }
+
+    private func stopClock() {
+        clock?.invalidate()
+        clock = nil
+    }
+
+    private func tick() {
+        state.elapsed = elapsedBefore + (rollingSince.map { Date().timeIntervalSince($0) } ?? 0)
+        onChange?()
+    }
+
+    private func screensChanged() {
+        guard let presentation else { return }
+        let text = presentation.text
+        let word = text.word(atOffset: text.offset)
+        presentation.refresh()
+        text.load(script, style: PrompterStyle.current(fullScreen: placement == .fullScreen))
+        text.setOffset(text.offset(forWord: word))
+        markVoicePlace()
+    }
+
+    /// The line under the camera, for the remote.
+    public var currentLine: String { presentation?.text.currentLine() ?? "" }
+}
