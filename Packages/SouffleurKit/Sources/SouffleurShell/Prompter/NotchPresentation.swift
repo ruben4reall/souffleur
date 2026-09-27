@@ -3,7 +3,8 @@ import SouffleurCore
 import SwiftUI
 
 /// The prompter hanging from the notch: it grows out of the camera housing with a spring, the text starts right under
-/// the lens, and the camera row shows the time on the left and the voice on the right.
+/// the lens, and the camera row shows the time on the left and the voice on the right. Stage light rises inside it
+/// from its lower edge, and a halo of the same colour lies beneath it.
 @MainActor
 final class NotchPresentation: PrompterPresentation {
     let text = ScriptTextView()
@@ -18,6 +19,7 @@ final class NotchPresentation: PrompterPresentation {
     private var wings: [NSHostingView<AnyView>] = []
     private var layout: PrompterLayout?
     private var isOpen = false
+    private var haloOpacity: Float = 0.25
 
     init(state: PrompterState) {
         self.state = state
@@ -29,8 +31,8 @@ final class NotchPresentation: PrompterPresentation {
         canvas.addSubview(backdrop)
         canvas.addSubview(glow)
         backdrop.shapeLayer.fillColor = NSColor.black.cgColor
-        backdrop.shapeLayer.shadowColor = NSColor.black.cgColor
-        backdrop.shapeLayer.shadowRadius = 12
+        // The halo: a shadow of the light's colour, 4 points down and blurred over 10.
+        backdrop.shapeLayer.shadowRadius = 5
         backdrop.shapeLayer.shadowOffset = CGSize(width: 0, height: -4)
         backdrop.shapeLayer.shadowOpacity = 0
         content.wantsLayer = true
@@ -50,7 +52,9 @@ final class NotchPresentation: PrompterPresentation {
             menuBarHeight: screen.frame.maxY - screen.visibleFrame.maxY
         )
         let style = PrompterStyle.current()
-        let textHeight = (style.lineHeight * CGFloat(Preferences.notchLines) + 16).rounded()
+        // Exactly the lines chosen, seen through a long fade at each edge: the line being read is the one lit in
+        // full, a little above the middle; the one just read fades out upwards, the next ones into the lower edge.
+        let textHeight = (style.lineHeight * CGFloat(Preferences.notchLines)).rounded()
         let layout = PrompterLayout(notch: notch, width: Preferences.notchWidth, textHeight: textHeight)
         self.layout = layout
         panel.sharingType = Preferences.hiddenFromCapture ? .none : .readOnly
@@ -67,22 +71,26 @@ final class NotchPresentation: PrompterPresentation {
         content.frame = bounds
         mask.frame = bounds
         text.frame = flipped(layout.textFrame, in: size)
-        text.readingInset = 10
-        text.hiddenTop = 10
-        text.fadeTop = 6
-        text.fadeBottom = 22
-        text.horizontalInset = 20
+        text.fadeTop = (textHeight * 0.3).rounded()
+        text.fadeBottom = (textHeight * 0.475).rounded()
+        text.hiddenTop = 0
+        text.readingInset = max(0, (textHeight * 0.41 - style.lineHeight / 2).rounded())
+        text.horizontalInset = 18
         text.showsBand = false
         installOverlays(layout: layout, size: size)
         let path = outline(open: isOpen)
-        let open = layout.shape(open: true)
-        glow.configure(center: CGPoint(x: size.width / 2, y: size.height - open.gap - open.height / 2))
+        glow.configure(body: flipped(layout.bodyFrame, in: size))
+        glow.setColors(Preferences.stageLight)
+        let light = Preferences.stageLight
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         backdrop.shapeLayer.path = path
         backdrop.shapeLayer.shadowPath = path
+        backdrop.shapeLayer.shadowColor = light == .off ? NSColor.black.cgColor : Theme.lamp(light).cgColor
+        haloOpacity = light == .off ? 0.3 : 0.25
+        if isOpen { backdrop.shapeLayer.shadowOpacity = haloOpacity }
         mask.path = path
-        glow.rimLayers.forEach { $0.path = outline(open: isOpen, rim: true) }
+        glow.outline.path = path
         CATransaction.commit()
         canvas.trackedRect = flipped(layout.frameOfOpenShape, in: size)
     }
@@ -157,12 +165,10 @@ final class NotchPresentation: PrompterPresentation {
 
     private func morph(open: Bool, completion: (@MainActor () -> Void)? = nil) {
         let path = outline(open: open)
-        let rim = outline(open: open, rim: true)
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         CATransaction.setCompletionBlock { MainActor.assumeIsolated { completion?() } }
-        let rims = glow.rimLayers.map { ($0, "path", rim) }
-        for (layer, key, target) in [(backdrop.shapeLayer, "path", path), (backdrop.shapeLayer, "shadowPath", path), (mask, "path", path)] + rims {
+        for (layer, key, target) in [(backdrop.shapeLayer, "path", path), (backdrop.shapeLayer, "shadowPath", path), (mask, "path", path), (glow.outline, "path", path)] {
             let animation = Motion.spring(open: open)
             animation.keyPath = key
             let current = key == "path" ? (layer.presentation()?.path ?? layer.path) : (layer.presentation()?.shadowPath ?? layer.shadowPath)
@@ -174,18 +180,17 @@ final class NotchPresentation: PrompterPresentation {
         let shadow = Motion.spring(open: open)
         shadow.keyPath = "shadowOpacity"
         shadow.fromValue = backdrop.shapeLayer.presentation()?.shadowOpacity ?? backdrop.shapeLayer.shadowOpacity
-        shadow.toValue = open ? 0.5 : 0
-        backdrop.shapeLayer.shadowOpacity = open ? 0.5 : 0
+        shadow.toValue = open ? haloOpacity : 0
+        backdrop.shapeLayer.shadowOpacity = open ? haloOpacity : 0
         backdrop.shapeLayer.add(shadow, forKey: "shadowOpacity")
         CATransaction.commit()
     }
 
-    private func outline(open: Bool, rim: Bool = false) -> CGPath {
+    private func outline(open: Bool) -> CGPath {
         guard let layout else { return CGMutablePath() }
         let size = layout.canvasSize
         var flip = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: size.height)
-        let shape = layout.shape(open: open)
-        let path = rim ? PrompterPath.rim(shape, centerX: size.width / 2) : PrompterPath.make(shape, centerX: size.width / 2)
+        let path = PrompterPath.make(layout.shape(open: open), centerX: size.width / 2)
         return path.copy(using: &flip) ?? path
     }
 
@@ -198,7 +203,7 @@ extension PrompterLayout {
     /// The open outline's bounding box in the canvas, top-left origin.
     var frameOfOpenShape: CGRect {
         let open = shape(open: true)
-        return CGRect(x: (canvasSize.width - open.outerWidth) / 2, y: open.gap, width: open.outerWidth, height: open.height)
+        return CGRect(x: (canvasSize.width - open.outerWidth) / 2, y: open.top, width: open.outerWidth, height: open.height)
     }
 }
 

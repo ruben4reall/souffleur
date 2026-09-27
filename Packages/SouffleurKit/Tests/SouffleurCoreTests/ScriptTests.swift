@@ -81,6 +81,8 @@ struct ScriptTests {
         let start = Date()
         let script = Script(text)
         #expect(script.words.count == 11_250)
-        #expect(Date().timeIntervalSince(start) < 0.05)
+        // About 30 ms in a debug build on an M3 Pro; the budget leaves room for shared CI machines and still fails at
+        // once on anything quadratic, which would take seconds.
+        #expect(Date().timeIntervalSince(start) < 0.5)
     }
 }

@@ -44,6 +44,7 @@ public final class PrompterState {
         var close: () -> Void = {}
         var openSettings: (URL) -> Void = { _ in }
         var useAutoScroll: () -> Void = {}
+        var usePace: (Double) -> Void = { _ in }
     }
 
     public var isRolling: Bool { phase == .rolling }

@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 /// Souffleur's design tokens. The prompter is black like the notch it hangs from; its signature is stage light, a
-/// violet that runs into fuchsia, which marks what belongs to Souffleur: the glow around the notch, the next word,
+/// violet that runs into fuchsia, which marks what belongs to Souffleur: the light inside the notch, the next word,
 /// the voice, the main button.
 public enum Theme {
     /// Spotlight violet, the accent: buttons, selection, the level meter.
@@ -15,15 +15,36 @@ public enum Theme {
     public static let highlightNS = NSColor(srgbRed: 0.804, green: 0.725, blue: 1, alpha: 1)
     public static let stage = Color(red: 0.027, green: 0.027, blue: 0.031)
 
-    /// The stage light running around the notch: violet, purple, fuchsia, a warm pink, and back.
-    static let glowColors: [CGColor] = [
-        CGColor(srgbRed: 0.431, green: 0.357, blue: 1, alpha: 1),
-        CGColor(srgbRed: 0.643, green: 0.361, blue: 1, alpha: 1),
-        CGColor(srgbRed: 1, green: 0.353, blue: 0.784, alpha: 1),
-        CGColor(srgbRed: 1, green: 0.561, blue: 0.690, alpha: 1),
-        CGColor(srgbRed: 0.643, green: 0.361, blue: 1, alpha: 1),
-        CGColor(srgbRed: 0.431, green: 0.357, blue: 1, alpha: 1),
-    ]
+    /// The panels of the main window: near black in dark mode, white in light mode.
+    public static let card = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? NSColor(srgbRed: 0.075, green: 0.075, blue: 0.086, alpha: 1)
+            : NSColor.white
+    })
+
+    /// The stage light inside the prompter and the halo beneath it, in the colour chosen in Settings (violet by
+    /// default).
+    static func lamp(_ light: StageLight) -> NSColor {
+        let (red, green, blue) = light.lamp
+        return NSColor(srgbRed: red, green: green, blue: blue, alpha: 1)
+    }
+
+    /// The next word and the prompter's figures, in a light tint of the stage light.
+    static func highlight(_ light: StageLight) -> NSColor {
+        let (red, green, blue) = light.highlight
+        return NSColor(srgbRed: red, green: green, blue: blue, alpha: 1)
+    }
+
+    static func highlightColor(_ light: StageLight) -> Color {
+        let (red, green, blue) = light.highlight
+        return Color(red: red, green: green, blue: blue)
+    }
+
+    /// The two ends of the light, for the level meter and the swatches.
+    static func lightEnds(_ light: StageLight) -> [Color] {
+        let stops = light.stops
+        return [Color(red: stops[0].0, green: stops[0].1, blue: stops[0].2), Color(red: stops[2].0, green: stops[2].1, blue: stops[2].2)]
+    }
 
     // The system's label colours on a dark background.
     static let secondaryText = Color(red: 0.92, green: 0.92, blue: 0.96).opacity(0.6)

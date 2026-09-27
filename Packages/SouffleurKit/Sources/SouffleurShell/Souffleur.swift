@@ -17,6 +17,8 @@ public final class Souffleur {
     public let remote = RemoteServer()
     /// Bumped when the remote's status changes, so SwiftUI redraws the Remote settings.
     public private(set) var remoteRevision = 0
+    /// Shortcuts another app already holds, as they read ("⌃⌥⌘P").
+    public private(set) var takenShortcuts: [String] = []
 
     @ObservationIgnored private var hotKeys: HotKeys?
     @ObservationIgnored private var mainKeys: [UInt32] = []
@@ -179,20 +181,24 @@ public final class Souffleur {
     private func applyPreferences() {
         if Preferences.hotKeys, mainKeys.isEmpty {
             let chord = HotKeys.chord
-            mainKeys = hotKeys?.register([
-                .init(key: kVK_ANSI_P, modifiers: chord) { [weak self] in self?.playPause() },
-                .init(key: kVK_UpArrow, modifiers: chord) { [weak self] in self?.prompter.faster() },
-                .init(key: kVK_DownArrow, modifiers: chord) { [weak self] in self?.prompter.slower() },
-                .init(key: kVK_LeftArrow, modifiers: chord) { [weak self] in self?.prompter.moveLine(-1) },
-                .init(key: kVK_RightArrow, modifiers: chord) { [weak self] in self?.prompter.moveLine(1) },
-                .init(key: kVK_ANSI_H, modifiers: chord) { [weak self] in self?.showOrHide() },
-                .init(key: kVK_ANSI_R, modifiers: chord) { [weak self] in self?.prompter.restart() },
-            ]) ?? []
+            let result = hotKeys?.register([
+                .init(key: kVK_ANSI_P, modifiers: chord, label: "⌃⌥⌘P") { [weak self] in self?.playPause() },
+                .init(key: kVK_UpArrow, modifiers: chord, label: "⌃⌥⌘↑") { [weak self] in self?.prompter.faster() },
+                .init(key: kVK_DownArrow, modifiers: chord, label: "⌃⌥⌘↓") { [weak self] in self?.prompter.slower() },
+                .init(key: kVK_LeftArrow, modifiers: chord, label: "⌃⌥⌘←") { [weak self] in self?.prompter.moveLine(-1) },
+                .init(key: kVK_RightArrow, modifiers: chord, label: "⌃⌥⌘→") { [weak self] in self?.prompter.moveLine(1) },
+                .init(key: kVK_ANSI_H, modifiers: chord, label: "⌃⌥⌘H") { [weak self] in self?.showOrHide() },
+                .init(key: kVK_ANSI_R, modifiers: chord, label: "⌃⌥⌘R") { [weak self] in self?.prompter.restart() },
+            ])
+            mainKeys = result?.ids ?? []
+            takenShortcuts = result?.taken ?? []
         } else if !Preferences.hotKeys, !mainKeys.isEmpty {
             hotKeys?.unregister(mainKeys)
             mainKeys = []
+            takenShortcuts = []
         }
         updateClickerKeys()
+        prompter.paceChanged()
         if Preferences.remoteEnabled, !remote.isRunning { remote.start() }
         if !Preferences.remoteEnabled, remote.isRunning { remote.stop() }
         let policy: NSApplication.ActivationPolicy = Preferences.showsDockIcon ? .regular : .accessory
@@ -205,9 +211,9 @@ public final class Souffleur {
         let wanted = Preferences.clickerKeys && prompter.isActive
         if wanted, clickerKeys.isEmpty {
             clickerKeys = hotKeys?.register([
-                .init(key: kVK_PageDown, modifiers: 0) { [weak self] in self?.clickerNext() },
-                .init(key: kVK_PageUp, modifiers: 0) { [weak self] in self?.prompter.moveLine(-1) },
-            ]) ?? []
+                .init(key: kVK_PageDown, modifiers: 0, label: "Page Down") { [weak self] in self?.clickerNext() },
+                .init(key: kVK_PageUp, modifiers: 0, label: "Page Up") { [weak self] in self?.prompter.moveLine(-1) },
+            ]).ids ?? []
         } else if !wanted, !clickerKeys.isEmpty {
             hotKeys?.unregister(clickerKeys)
             clickerKeys = []

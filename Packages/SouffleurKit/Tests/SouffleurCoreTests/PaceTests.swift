@@ -10,6 +10,20 @@ struct PaceTests {
         #expect(Pace.readingTime(words: 10, wordsPerMinute: 0) == 0)
     }
 
+    @Test func aScriptFitsAChosenDuration() {
+        // 150 words in one minute: 150 words a minute; 120 in 45 seconds: 160.
+        #expect(Pace.wordsPerMinute(toRead: 150, in: 60) == 150)
+        #expect(Pace.wordsPerMinute(toRead: 120, in: 45) == 160)
+        #expect(Pace.wordsPerMinute(toRead: 0, in: 60) == 0)
+        #expect(Pace.wordsPerMinute(toRead: 10, in: 0) == 0)
+    }
+
+    @Test func offersOnlyTheDurationsTheSpeedsCanReach() {
+        // 120 words, between 60 and 260 words a minute: from about 28 seconds to two minutes.
+        #expect(Pace.fittingDurations(words: 120, range: 60...260) == [30, 45, 60, 90, 120])
+        #expect(Pace.fittingDurations(words: 0, range: 60...260).isEmpty)
+    }
+
     @Test func clockShowsMinutesAndSeconds() {
         #expect(Pace.clock(0) == "0:00")
         #expect(Pace.clock(65) == "1:05")
@@ -64,6 +78,15 @@ struct TakeSummaryTests {
         #expect(summary.fillers == 2)
     }
 
+    @Test func suggestsTheReadersOwnPaceAfterAFullTake() {
+        let take = TakeSummary(duration: 60, wordsRead: 146, totalWords: 200, longestPause: 2, fillers: 0)
+        #expect(take.suggestedPace(range: 60...260) == 145)
+        // Too short a take to trust.
+        #expect(TakeSummary(duration: 8, wordsRead: 20, totalWords: 200, longestPause: 0, fillers: 0).suggestedPace(range: 60...260) == nil)
+        // Within the speeds the slider offers.
+        #expect(TakeSummary(duration: 60, wordsRead: 300, totalWords: 400, longestPause: 0, fillers: 0).suggestedPace(range: 60...260) == 260)
+    }
+
     @Test func anEmptyTakeHasNoPace() {
         let start = Date(timeIntervalSince1970: 0)
         let summary = TakeRecorder(totalWords: 0, start: start).finish(at: start)
@@ -88,28 +111,32 @@ struct NotchGeometryTests {
         let layout = PrompterLayout(notch: notch, width: 520, textHeight: 150)
         let closed = layout.shape(open: false)
         let open = layout.shape(open: true)
-        #expect(closed.width == 188 && closed.height == 32 && closed.gap == 0)
-        #expect(open.width == 520 && open.height == 32 + 150 && open.gap == 0)
+        #expect(closed.width == 188 && closed.height == 32 && closed.top == 0)
+        #expect(open.width == 520 && open.height == 32 + 150 && open.top == 0)
         #expect(layout.textFrame.minY == 32)
         #expect(layout.textFrame.width == 520)
     }
 
-    @Test func withoutANotchThePrompterFloatsUnderTheMenuBar() {
+    @Test func theOpenPrompterKeepsTheClassicProportions() {
+        let notch = NotchMetrics(width: 188, height: 32, centerX: 756, isHardware: true)
+        let open = PrompterLayout(notch: notch, width: 400, textHeight: 136).shape(open: true)
+        // Ears of 25 points and lower corners of 13 on a prompter 400 points wide, in proportion at any width.
+        #expect(abs(open.earRadius - 25) < 0.01)
+        #expect(abs(open.cornerRadius - 13) < 0.01)
+        let narrow = PrompterLayout(notch: notch, width: 360, textHeight: 136).shape(open: true)
+        #expect(abs(narrow.earRadius - 22.5) < 0.01)
+    }
+
+    @Test func withoutANotchThePrompterHangsFromTheMenuBar() {
         let notch = NotchMetrics(width: 180, height: 25, centerX: 1280, isHardware: false)
         let layout = PrompterLayout(notch: notch, width: 520, textHeight: 150)
         let open = layout.shape(open: true)
-        #expect(open.gap > 25)
-        #expect(open.isFloating)
-        #expect(layout.textFrame.minY == open.gap)
-    }
-
-    @Test func theRimLeavesOutTheEdgeAgainstTheScreen() {
-        let hanging = PrompterShape(width: 200, height: 100, earRadius: 10, cornerRadius: 20)
-        let rim = PrompterPath.rim(hanging, centerX: 300)
-        // Open: it starts at the left ear on the top edge and ends at the right one.
-        #expect(rim.currentPoint == CGPoint(x: 410, y: 0))
-        let floating = PrompterShape(width: 200, height: 100, earRadius: 0, cornerRadius: 20, gap: 30)
-        #expect(PrompterPath.rim(floating, centerX: 300).boundingBoxOfPath == PrompterPath.make(floating, centerX: 300).boundingBoxOfPath)
+        let closed = layout.shape(open: false)
+        #expect(open.top == 25 && closed.top == 25)
+        #expect(open.height == 150)
+        #expect(open.earRadius > 0)
+        #expect(layout.textFrame.minY == 25)
+        #expect(layout.wingFrames == nil)
     }
 
     @Test func theOutlineIsClosedAndCentred() {

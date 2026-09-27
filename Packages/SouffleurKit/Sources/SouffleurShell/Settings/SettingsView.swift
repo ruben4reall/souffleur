@@ -71,15 +71,15 @@ private struct GeneralPane: View {
 private struct PrompterPane: View {
     let app: Souffleur
     @AppStorage(Preferences.Key.placement) private var placement = PrompterPlacement.notch.rawValue
-    @AppStorage(Preferences.Key.notchWidth) private var notchWidth = 380.0
-    @AppStorage(Preferences.Key.notchLines) private var notchLines = 3.0
+    @AppStorage(Preferences.Key.notchWidth) private var notchWidth = 360.0
+    @AppStorage(Preferences.Key.notchLines) private var notchLines = 4.0
     @AppStorage(Preferences.Key.floatingWidth) private var floatingWidth = 520.0
     @AppStorage(Preferences.Key.floatingHeight) private var floatingHeight = 200.0
     @AppStorage(Preferences.Key.fullScreenDisplay) private var fullScreenDisplay = ""
     @AppStorage(Preferences.Key.fullScreenFontSize) private var fullScreenFontSize = 64.0
     @AppStorage(Preferences.Key.font) private var font = PrompterFont.system.rawValue
     @AppStorage(Preferences.Key.fontSize) private var fontSize = 19.0
-    @AppStorage(Preferences.Key.lineSpacing) private var lineSpacing = 1.28
+    @AppStorage(Preferences.Key.lineSpacing) private var lineSpacing = 1.5
     @AppStorage(Preferences.Key.alignment) private var alignment = "center"
     @AppStorage(Preferences.Key.theme) private var theme = PrompterTheme.night.rawValue
     @AppStorage(Preferences.Key.dimsReadWords) private var dimsReadWords = true
@@ -87,9 +87,27 @@ private struct PrompterPane: View {
     @AppStorage(Preferences.Key.countdown) private var countdown = true
     @AppStorage(Preferences.Key.showsTimer) private var showsTimer = true
     @AppStorage(Preferences.Key.hiddenFromCapture) private var hiddenFromCapture = true
+    @AppStorage(Preferences.Key.stageLight) private var light = StageLight.violet.rawValue
 
     var body: some View {
         Form {
+            Section {
+                LabeledContent(String(localized: "Stage light", bundle: .module)) {
+                    HStack(spacing: 10) {
+                        ForEach(StageLight.allCases) { option in
+                            Button { light = option.rawValue } label: {
+                                LightSwatch(light: option, selected: light == option.rawValue)
+                            }
+                            .buttonStyle(.plain)
+                            .help(option.title)
+                            .accessibilityLabel(option.title)
+                        }
+                    }
+                }
+            } footer: {
+                Text("The light around the prompter, and the colour of the next word. It brightens with your voice.", bundle: .module)
+                    .foregroundStyle(.secondary)
+            }
             Section(String(localized: "Place", bundle: .module)) {
                 Picker(String(localized: "Show the prompter", bundle: .module), selection: $placement) {
                     ForEach(PrompterPlacement.allCases) { Text($0.title).tag($0.rawValue) }
@@ -144,7 +162,7 @@ private struct PrompterPane: View {
             Section {
                 Toggle(String(localized: "Hide from screen sharing and recordings", bundle: .module), isOn: $hiddenFromCapture)
             } footer: {
-                Text("Apps that respect macOS's capture protection won't see the prompter. Since macOS 15, some screen sharing and recording apps capture it anyway: share a window rather than your whole screen to be sure.", bundle: .module)
+                Text("The prompter stays on your screen and out of screenshots, screen recordings and screen sharing. Turn this off to show it in a tutorial.", bundle: .module)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -174,7 +192,7 @@ private struct PrompterPane: View {
 }
 
 private struct VoicePane: View {
-    @AppStorage(Preferences.Key.mode) private var mode = ScrollMode.voice.rawValue
+    @AppStorage(Preferences.Key.mode) private var mode = ScrollMode.pace.rawValue
     @AppStorage(Preferences.Key.voiceLanguage) private var language = "auto"
     @AppStorage(Preferences.Key.wordsPerMinute) private var pace = Pace.conversational
     @State private var locales: [Locale] = []
@@ -242,6 +260,15 @@ private struct ControlsPane: View {
         Form {
             Section {
                 Toggle(String(localized: "Keyboard shortcuts in every app", bundle: .module), isOn: $hotKeys)
+                if hotKeys, !app.takenShortcuts.isEmpty {
+                    Label {
+                        Text("Another app already uses \(app.takenShortcuts.formatted(.list(type: .and))). Quit it or change its shortcut, then turn this off and on.", bundle: .module)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
+                    }
+                    .font(.system(size: 12))
+                }
                 if hotKeys {
                     shortcut("⌃⌥⌘P", String(localized: "Prompt the selected script, play or pause", bundle: .module))
                     shortcut("⌃⌥⌘↑ ↓", String(localized: "Faster, slower", bundle: .module))
@@ -343,5 +370,26 @@ private struct AboutPane: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
+    }
+}
+
+/// A disc of the stage light's colours, ringed when chosen; a crossed disc for no light.
+struct LightSwatch: View {
+    let light: StageLight
+    let selected: Bool
+
+    var body: some View {
+        ZStack {
+            if light == .off {
+                Circle().fill(Color.primary.opacity(0.08))
+                Image(systemName: "slash.circle").font(.system(size: 13, weight: .semibold)).foregroundStyle(.secondary)
+            } else {
+                Circle().fill(AngularGradient(colors: light.stops.map { Color(red: $0.0, green: $0.1, blue: $0.2) }, center: .center))
+                Circle().fill(Color.black).padding(7)
+            }
+        }
+        .frame(width: 26, height: 26)
+        .padding(3)
+        .overlay(Circle().strokeBorder(selected ? Color.primary.opacity(0.85) : .clear, lineWidth: 2))
     }
 }

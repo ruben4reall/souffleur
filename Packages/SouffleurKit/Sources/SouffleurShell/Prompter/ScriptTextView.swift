@@ -10,6 +10,7 @@ struct PrompterStyle: Equatable {
     var centered: Bool
     var dimsReadWords: Bool
     var mirror: MirrorMode
+    var light: StageLight
 
     @MainActor static func current(fullScreen: Bool = false) -> PrompterStyle {
         PrompterStyle(
@@ -19,7 +20,8 @@ struct PrompterStyle: Equatable {
             theme: Preferences.theme,
             centered: Preferences.centersText,
             dimsReadWords: Preferences.dimsReadWords,
-            mirror: Preferences.mirror
+            mirror: Preferences.mirror,
+            light: Preferences.stageLight
         )
     }
 
@@ -166,7 +168,7 @@ final class ScriptTextView: NSView {
         let palette = Theme.palette(style.theme)
         let paragraph = NSMutableParagraphStyle()
         paragraph.lineHeightMultiple = style.spacing
-        paragraph.paragraphSpacing = style.size * 0.45
+        paragraph.paragraphSpacing = style.size * 0.8
         paragraph.alignment = style.centered ? .center : .natural
         let text = NSMutableAttributedString(string: script.display, attributes: [
             .font: style.bodyFont,
@@ -286,7 +288,7 @@ final class ScriptTextView: NSView {
             manager.addTemporaryAttribute(.foregroundColor, value: palette.read, forCharacterRange: NSRange(location: 0, length: clamped))
         }
         if let next, NSMaxRange(next) <= length {
-            manager.addTemporaryAttribute(.foregroundColor, value: Theme.highlightNS, forCharacterRange: next)
+            manager.addTemporaryAttribute(.foregroundColor, value: Theme.highlight(style.light), forCharacterRange: next)
         }
         readLocation = clamped
         nextWordRange = next

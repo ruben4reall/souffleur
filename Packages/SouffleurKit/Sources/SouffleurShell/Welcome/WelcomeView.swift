@@ -7,7 +7,7 @@ public struct WelcomeView: View {
     let app: Souffleur
     let close: () -> Void
     @State private var step = 0
-    @AppStorage(Preferences.Key.mode) private var mode = ScrollMode.voice.rawValue
+    @AppStorage(Preferences.Key.mode) private var mode = ScrollMode.pace.rawValue
 
     public init(app: Souffleur, close: @escaping () -> Void) {
         self.app = app
@@ -82,7 +82,7 @@ public struct WelcomeView: View {
                 Text("You can change it for every take.", bundle: .module).foregroundStyle(.secondary)
             }
             VStack(spacing: 10) {
-                ForEach([ScrollMode.voice, .pace, .auto]) { option in
+                ForEach([ScrollMode.pace, .voice, .auto]) { option in
                     Button { mode = option.rawValue } label: {
                         HStack(spacing: 14) {
                             Image(systemName: option.symbol)
@@ -94,7 +94,7 @@ public struct WelcomeView: View {
                                 HStack(spacing: 6) {
                                     Text(option.title).font(.system(size: 14, weight: .semibold))
                                     if option == .voice {
-                                        Text("Recommended", bundle: .module)
+                                        Text("Hands free", bundle: .module)
                                             .font(.system(size: 10, weight: .bold))
                                             .foregroundStyle(Theme.fuchsia)
                                             .padding(.horizontal, 6).padding(.vertical, 2)

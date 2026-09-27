@@ -86,14 +86,23 @@ struct ScriptEditor: NSViewRepresentable {
     }
 }
 
-/// Keeps the text in a readable column, centred in wide windows.
+/// Keeps the text in a readable column, centred in wide windows, and flowing around the play button in the top
+/// right corner of the panel.
 final class ColumnTextView: NSTextView {
     static let column: CGFloat = 720
+    /// The corner the play button covers, in points from the top right of the panel.
+    static let buttonCorner = CGSize(width: 124, height: 118)
 
     override func setFrameSize(_ newSize: NSSize) {
         super.setFrameSize(newSize)
-        let side = max(36, (newSize.width - Self.column) / 2)
-        if textContainerInset.width != side { textContainerInset = NSSize(width: side, height: 28) }
+        let side = max(26, (newSize.width - Self.column) / 2)
+        if textContainerInset.width != side { textContainerInset = NSSize(width: side, height: 24) }
+        guard let container = textContainer else { return }
+        // In the container's space: its right edge sits `side` points in from the panel's.
+        let reach = max(0, Self.buttonCorner.width - side)
+        let corner = NSRect(x: container.size.width - reach, y: 0, width: reach, height: Self.buttonCorner.height - 24)
+        let exclusion = reach > 0 ? [NSBezierPath(rect: corner)] : []
+        if container.exclusionPaths != exclusion { container.exclusionPaths = exclusion }
     }
 }
 

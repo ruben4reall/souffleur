@@ -62,12 +62,12 @@ final class CardPresentation: PrompterPresentation {
         text.showsBand = fullScreen
         if text.superview == nil { container.addSubview(text) }
         if !fullScreen {
-            // The stage light runs along the inside of the card's edge.
+            // The stage light rises inside the card from its lower edge, as in the notch.
             if glowView.superview == nil { container.addSubview(glowView, positioned: .above, relativeTo: background) }
             glowView.frame = bounds
-            glowView.configure(center: CGPoint(x: bounds.midX, y: bounds.midY))
-            let rim = CGPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), cornerWidth: 25, cornerHeight: 25, transform: nil)
-            glowView.rimLayers.forEach { $0.path = rim }
+            glowView.configure(body: bounds)
+            glowView.setColors(Preferences.stageLight)
+            glowView.outline.path = CGPath(roundedRect: bounds, cornerWidth: 26, cornerHeight: 26, transform: nil)
         }
         installOverlay(bounds: bounds)
         container.trackedRect = bounds
@@ -140,7 +140,7 @@ final class CardPresentation: PrompterPresentation {
 
     func glow(_ intensity: CGFloat) {
         guard !fullScreen else { return }
-        glowView.setIntensity(intensity * 0.8)
+        glowView.setIntensity(intensity)
     }
 
     func closeNow() {
