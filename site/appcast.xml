@@ -1,0 +1,33 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Souffleur</title>
+        <item>
+            <title>1.0.0</title>
+            <pubDate>Sun, 27 Sep 2026 21:04:09 +0200</pubDate>
+            <link>https://getsouffleur.vercel.app</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/ruben4reall/souffleur/releases</sparkle:fullReleaseNotesLink>
+            <sparkle:version>1.0.0</sparkle:version>
+            <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[The first release of Souffleur: a teleprompter that lives in the MacBook notch, free and open source under the MIT
+License.
+
+- **Voice follow**: speech recognised on the Mac and lined up with the script, word by word. The words said dim, the
+  next one lights up, and the line being read stays under the camera. It waits when you pause, finds you again when
+  you skip, and understands numbers, contractions and accents.
+- **Four ways to scroll**: Voice Follow, Voice Pace, Auto Scroll and Manual.
+- **Three places**: the notch, compact and ringed with a violet light that follows your voice; a floating glass card;
+  full screen on any display, mirrored for a teleprompter rig.
+- **Control**: global shortcuts, presentation clickers and foot pedals, a phone remote over the local network,
+  `souffleur://` links and Shortcuts actions.
+- **Scripts**: a library of Markdown files with light markup, and import from text, RTF, Word, PDF and PowerPoint
+  speaker notes.
+- **Coach**: live pace beside the camera and a summary after every take.
+- **Privacy**: no account, no analytics, the voice never leaves the Mac.
+- **Updates**: Sparkle, EdDSA-signed and notarized by Apple.
+]]></description>
+            <enclosure url="https://github.com/ruben4reall/souffleur/releases/download/v1.0.0/Souffleur-1.0.0.dmg" length="3205640" type="application/octet-stream" sparkle:edSignature="pTuJDSG5eydFKGMwMqoD8Y7V5LznVYbV+orCTGdyF2JnuKbmS53D+ueIVD1q4NXXeKUv2GuOHvGs2q6KRMUvBQ=="/>
+        </item>
+    </channel>
+</rss>
