@@ -13,7 +13,7 @@ enum Demo {
     static func runIfAsked(_ app: Souffleur) {
         let defaults = UserDefaults.standard
         guard let place = defaults.string(forKey: "SouffleurDemo").flatMap(PrompterPlacement.init(rawValue:)) else { return }
-        UserDefaults.standard.set(place.rawValue, forKey: Preferences.Key.placement)
+        app.prompter.placementOverride = place
         app.prompter.demoVoice = defaults.bool(forKey: "SouffleurDemoVoice")
         app.prompter.demoStop = defaults.object(forKey: "SouffleurDemoStop") != nil ? defaults.integer(forKey: "SouffleurDemoStop") : nil
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {

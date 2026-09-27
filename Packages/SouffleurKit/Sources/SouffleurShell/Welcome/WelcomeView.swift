@@ -5,11 +5,14 @@ import SwiftUI
 /// The first launch: what Souffleur does, how the script should move, and a first take with the welcome script.
 public struct WelcomeView: View {
     let app: Souffleur
+    let close: () -> Void
     @State private var step = 0
     @AppStorage(Preferences.Key.mode) private var mode = ScrollMode.voice.rawValue
-    @Environment(\.dismiss) private var dismiss
 
-    public init(app: Souffleur) { self.app = app }
+    public init(app: Souffleur, close: @escaping () -> Void) {
+        self.app = app
+        self.close = close
+    }
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -186,12 +189,42 @@ public struct WelcomeView: View {
             if listens { Task { _ = await Permissions.microphone(); if mode == ScrollMode.voice.rawValue { _ = await Permissions.speech() } } }
         default:
             Preferences.welcomed = true
-            dismiss()
+            close()
             if let welcome = app.store.documents.first(where: { $0.text == ScriptStore.welcomeScript }) {
                 app.store.selection = welcome.id
             }
             app.showLibrary()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { app.promptSelected() }
         }
+    }
+}
+
+/// The welcome window, made by hand so it opens even before any SwiftUI window exists.
+@MainActor
+public enum WelcomeWindow {
+    private static var window: NSWindow?
+
+    public static func show(app: Souffleur) {
+        NSApp.activate()
+        if let window {
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+        let hosting = NSHostingController(rootView: WelcomeView(app: app, close: { WelcomeWindow.close() }))
+        let window = NSWindow(contentViewController: hosting)
+        window.styleMask = [.titled, .closable, .fullSizeContentView]
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.isMovableByWindowBackground = true
+        window.isReleasedWhenClosed = false
+        window.title = String(localized: "Welcome to Souffleur", bundle: .module)
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        self.window = window
+    }
+
+    static func close() {
+        window?.close()
+        window = nil
     }
 }

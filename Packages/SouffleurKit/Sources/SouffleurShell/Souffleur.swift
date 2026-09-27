@@ -111,14 +111,17 @@ public final class Souffleur {
         NSApp.activate()
         if let window = NSApp.windows.first(where: { $0.identifier?.rawValue.hasPrefix("library") == true }) {
             window.makeKeyAndOrderFront(nil)
-        } else {
-            openWindow?("library")
+        } else if let openWindow {
+            openWindow("library")
+        } else if let item = NSApp.mainMenu?.items.first(where: { $0.submenu?.items.contains { $0.title == "Souffleur" } == true })?
+            .submenu?.items.first(where: { $0.title == "Souffleur" }), let action = item.action {
+            // SwiftUI lists its windows in the Window menu: its item opens the library when nothing else can.
+            NSApp.sendAction(action, to: item.target, from: item)
         }
     }
 
     public func showWelcome() {
-        NSApp.activate()
-        openWindow?("welcome")
+        WelcomeWindow.show(app: self)
     }
 
     // MARK: Links

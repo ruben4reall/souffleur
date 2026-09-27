@@ -39,3 +39,16 @@ public struct MenuBarMenu: View {
             .keyboardShortcut("q")
     }
 }
+
+/// The menu bar icon. It is drawn at launch, so it also hands the app the action that opens SwiftUI windows.
+public struct MenuBarLabel: View {
+    let app: Souffleur
+    @Environment(\.openWindow) private var openWindow
+
+    public init(app: Souffleur) { self.app = app }
+
+    public var body: some View {
+        Image(systemName: app.prompter.state.isRolling ? "rectangle.topthird.inset.filled" : "rectangle.topthird.inset.filled")
+            .onAppear { app.openWindow = { id in openWindow(id: id) } }
+    }
+}

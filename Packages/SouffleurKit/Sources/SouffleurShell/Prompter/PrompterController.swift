@@ -30,6 +30,8 @@ public final class PrompterController {
     public var demoVoice = false
     /// With `demoVoice`, the word at which the scripted reading stops.
     public var demoStop: Int?
+    /// A place for the next takes that leaves the user's setting alone, for demos.
+    public var placementOverride: PrompterPlacement?
     private var demoTask: Task<Void, Never>?
 
     public init() {
@@ -59,7 +61,7 @@ public final class PrompterController {
         if presentation != nil { tearDown(animated: false) }
         self.script = script
         sourceText = text
-        placement = Preferences.placement
+        placement = placementOverride ?? Preferences.placement
         state.title = title
         state.mode = Preferences.mode
         state.wordsPerMinute = Preferences.wordsPerMinute

@@ -12,6 +12,7 @@ final class CardPresentation: PrompterPresentation {
     private let panel: PrompterPanel
     private let container = HoverView()
     private var background: NSView?
+    private let glowView = GlowView()
     private var overlay: PassthroughHostingView<PrompterOverlay>?
     var onKey: ((NSEvent) -> Bool)? {
         didSet { panel.onKey = onKey }
@@ -59,6 +60,14 @@ final class CardPresentation: PrompterPresentation {
         text.fadeBottom = fullScreen ? 80 : 30
         text.showsBand = fullScreen
         if text.superview == nil { container.addSubview(text) }
+        if !fullScreen {
+            // The stage light runs along the inside of the card's edge.
+            if glowView.superview == nil { container.addSubview(glowView, positioned: .above, relativeTo: background) }
+            glowView.frame = bounds
+            glowView.configure(center: CGPoint(x: bounds.midX, y: bounds.midY))
+            let rim = CGPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), cornerWidth: 25, cornerHeight: 25, transform: nil)
+            glowView.rimLayers.forEach { $0.path = rim }
+        }
         installOverlay(bounds: bounds)
         container.trackedRect = bounds
     }
@@ -128,7 +137,10 @@ final class CardPresentation: PrompterPresentation {
         }
     }
 
-    func glow(_ intensity: CGFloat) {}
+    func glow(_ intensity: CGFloat) {
+        guard !fullScreen else { return }
+        glowView.setIntensity(intensity * 0.8)
+    }
 
     func dismiss(completion: @escaping @MainActor () -> Void) {
         state.isHovering = false
