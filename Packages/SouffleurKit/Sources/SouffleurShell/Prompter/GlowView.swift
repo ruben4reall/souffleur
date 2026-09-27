@@ -25,7 +25,7 @@ final class GlowView: NSView {
         layer?.opacity = 0
         for (container, gradient) in [(halo, haloGradient), (line, lineGradient)] {
             gradient.type = .conic
-            gradient.colors = Theme.glowColors
+            gradient.colors = Theme.glowColors(.violet)
             gradient.startPoint = CGPoint(x: 0.5, y: 0.5)
             gradient.endPoint = CGPoint(x: 0.5, y: 0)
             container.addSublayer(gradient)
@@ -64,13 +64,26 @@ final class GlowView: NSView {
         CATransaction.commit()
     }
 
+    /// The colour of the light, from Settings.
+    func setColors(_ light: StageLight) {
+        let colors = Theme.glowColors(light)
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        lineGradient.colors = colors
+        haloGradient.colors = colors
+        CATransaction.commit()
+        isOff = light == .off
+        if isOff { setIntensity(0, duration: 0) }
+    }
+    private var isOff = false
+
     /// The outlines the light runs along; the presentation morphs them with the prompter.
     var rimLayers: [CAShapeLayer] { haloRims + [lineRim] }
 
     /// How bright the light is, from 0 (off) to 1, eased.
     func setIntensity(_ value: CGFloat, duration: CFTimeInterval = 0.25) {
         guard let layer else { return }
-        let target = Float(max(0, min(1, value)))
+        let target = isOff ? 0 : Float(max(0, min(1, value)))
         if target > 0, !spinning { spin(true) }
         CATransaction.begin()
         if target == 0 {

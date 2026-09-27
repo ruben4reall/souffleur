@@ -47,6 +47,7 @@ struct ControlBar: View {
 /// Everything drawn over the text: the countdown, notes, the summary of a take, the controls.
 struct PrompterOverlay: View {
     let state: PrompterState
+    @AppStorage(Preferences.Key.stageLight) private var light = StageLight.violet.rawValue
     /// The floating and full screen prompters show the timer and the level inside; the notch shows them beside the camera.
     let showsStatusRow: Bool
     var scale: CGFloat = 1
@@ -85,12 +86,14 @@ struct PrompterOverlay: View {
         .animation(.easeInOut(duration: 0.2), value: state.flash)
     }
 
+    private var stageLight: StageLight { StageLight(rawValue: light) ?? .violet }
+
     @ViewBuilder private var center: some View {
         switch state.phase {
         case .countdown(let number):
             Text("\(number)")
                 .font(.system(size: 64 * scale, weight: .semibold, design: .rounded))
-                .foregroundStyle(LinearGradient(colors: [Theme.highlight, Theme.fuchsia], startPoint: .top, endPoint: .bottom))
+                .foregroundStyle(LinearGradient(colors: [Theme.highlightColor(stageLight), Theme.lightEnds(stageLight)[1]], startPoint: .top, endPoint: .bottom))
                 .contentTransition(.numericText(countsDown: true))
                 .shadow(color: Theme.accent.opacity(0.6), radius: 18)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -137,11 +140,12 @@ struct StatusRow: View {
 
 struct TimerLabel: View {
     let state: PrompterState
+    @AppStorage(Preferences.Key.stageLight) private var light = StageLight.violet.rawValue
 
     var body: some View {
         HStack(spacing: 5) {
             Circle()
-                .fill(state.isRolling ? Theme.accent : Color.white.opacity(0.35))
+                .fill(state.isRolling ? Theme.lightEnds(StageLight(rawValue: light) ?? .violet)[0] : Color.white.opacity(0.35))
                 .frame(width: 5, height: 5)
             Text(Pace.clock(state.elapsed))
                 .foregroundStyle(Color.white.opacity(0.9))
@@ -175,6 +179,7 @@ struct LevelLabel: View {
 struct LevelMeter: View {
     let level: Float
     let speaking: Bool
+    @AppStorage(Preferences.Key.stageLight) private var light = StageLight.violet.rawValue
 
     var body: some View {
         HStack(alignment: .center, spacing: 2) {
@@ -182,7 +187,7 @@ struct LevelMeter: View {
                 let weights: [Float] = [0.6, 1, 0.8, 0.5]
                 let height = 3 + CGFloat(min(1, level * weights[index] * 1.4)) * 9
                 Capsule()
-                    .fill(speaking ? AnyShapeStyle(LinearGradient(colors: [Theme.fuchsia, Theme.accent], startPoint: .bottom, endPoint: .top)) : AnyShapeStyle(Color.white.opacity(0.4)))
+                    .fill(speaking ? AnyShapeStyle(LinearGradient(colors: Theme.lightEnds(StageLight(rawValue: light) ?? .violet).reversed(), startPoint: .bottom, endPoint: .top)) : AnyShapeStyle(Color.white.opacity(0.4)))
                     .frame(width: 2.5, height: height)
             }
         }
@@ -194,6 +199,7 @@ struct LevelMeter: View {
 struct SummaryCard: View {
     let summary: TakeSummary
     let state: PrompterState
+    @AppStorage(Preferences.Key.stageLight) private var light = StageLight.violet.rawValue
 
     var body: some View {
         VStack(spacing: 10) {
@@ -219,7 +225,7 @@ struct SummaryCard: View {
         VStack(spacing: 2) {
             Text(value)
                 .font(.system(size: 17, weight: .semibold, design: .rounded).monospacedDigit())
-                .foregroundStyle(Theme.highlight)
+                .foregroundStyle(Theme.highlightColor(StageLight(rawValue: light) ?? .violet))
             Text(label)
                 .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(Theme.secondaryText)

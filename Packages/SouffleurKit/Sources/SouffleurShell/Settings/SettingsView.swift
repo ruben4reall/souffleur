@@ -87,9 +87,27 @@ private struct PrompterPane: View {
     @AppStorage(Preferences.Key.countdown) private var countdown = true
     @AppStorage(Preferences.Key.showsTimer) private var showsTimer = true
     @AppStorage(Preferences.Key.hiddenFromCapture) private var hiddenFromCapture = true
+    @AppStorage(Preferences.Key.stageLight) private var light = StageLight.violet.rawValue
 
     var body: some View {
         Form {
+            Section {
+                LabeledContent(String(localized: "Stage light", bundle: .module)) {
+                    HStack(spacing: 10) {
+                        ForEach(StageLight.allCases) { option in
+                            Button { light = option.rawValue } label: {
+                                LightSwatch(light: option, selected: light == option.rawValue)
+                            }
+                            .buttonStyle(.plain)
+                            .help(option.title)
+                            .accessibilityLabel(option.title)
+                        }
+                    }
+                }
+            } footer: {
+                Text("The light around the prompter, and the colour of the next word. It brightens with your voice.", bundle: .module)
+                    .foregroundStyle(.secondary)
+            }
             Section(String(localized: "Place", bundle: .module)) {
                 Picker(String(localized: "Show the prompter", bundle: .module), selection: $placement) {
                     ForEach(PrompterPlacement.allCases) { Text($0.title).tag($0.rawValue) }
@@ -343,5 +361,26 @@ private struct AboutPane: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
+    }
+}
+
+/// A disc of the stage light's colours, ringed when chosen; a crossed disc for no light.
+struct LightSwatch: View {
+    let light: StageLight
+    let selected: Bool
+
+    var body: some View {
+        ZStack {
+            if light == .off {
+                Circle().fill(Color.primary.opacity(0.08))
+                Image(systemName: "slash.circle").font(.system(size: 13, weight: .semibold)).foregroundStyle(.secondary)
+            } else {
+                Circle().fill(AngularGradient(colors: light.stops.map { Color(red: $0.0, green: $0.1, blue: $0.2) }, center: .center))
+                Circle().fill(Color.black).padding(7)
+            }
+        }
+        .frame(width: 26, height: 26)
+        .padding(3)
+        .overlay(Circle().strokeBorder(selected ? Color.primary.opacity(0.85) : .clear, lineWidth: 2))
     }
 }
