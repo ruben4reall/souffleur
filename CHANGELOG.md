@@ -4,10 +4,17 @@ Each release's section is what Souffleur's update window and the GitHub release 
 
 ## Unreleased
 
+- **Below the notch**: the prompter hangs from the notch's lower edge and never covers the menu bar, whose items and
+  whatever other apps show beside the camera stay free. The time and the voice move to a band at its top.
+- **Other notch apps**: the prompter stays in front of their expanded views while it is open, and Souffleur tells
+  them when it opens and closes (two distributed notifications) so they can step aside.
 - **Fit in**: one click in the speed card sets the speed so the script lasts exactly 30 seconds, a minute, two, or
   another usual length.
 - **Use my pace**: after a take read at another pace than the speed set, the summary offers to roll at the reader's
   own pace from then on.
+- **Show the timer** now also hides it in the floating and full screen prompters.
+- The welcome window says what Souffleur does now: it hangs from the notch, stops when you stop, and stays out of
+  screen recordings.
 
 ## 1.1.0 (2026-09-27)
 

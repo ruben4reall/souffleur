@@ -2,9 +2,10 @@ import AppKit
 import SouffleurCore
 import SwiftUI
 
-/// The prompter hanging from the notch: it grows out of the camera housing with a spring, the text starts right under
-/// the lens, and the camera row shows the time on the left and the voice on the right. Stage light rises inside it
-/// from its lower edge, and a halo of the same colour lies beneath it.
+/// The prompter hanging from the notch: it drops from under the camera housing with a spring, right below the menu
+/// bar, whose items and whatever other apps show beside the camera stay free. A band at its top shows the time on the
+/// left and the voice on the right; stage light rises inside it from its lower edge, and a halo of the same colour lies
+/// beneath it.
 @MainActor
 final class NotchPresentation: PrompterPresentation {
     let text = ScriptTextView()
@@ -16,7 +17,7 @@ final class NotchPresentation: PrompterPresentation {
     private let content = NSView()
     private let mask = CAShapeLayer()
     private var overlay: PassthroughHostingView<PrompterOverlay>?
-    private var wings: [NSHostingView<AnyView>] = []
+    private var statusRow: NSHostingView<AnyView>?
     private var layout: PrompterLayout?
     private var isOpen = false
     private var haloOpacity: Float = 0.25
@@ -61,7 +62,7 @@ final class NotchPresentation: PrompterPresentation {
         let size = layout.canvasSize
         panel.setFrame(NSRect(
             x: (screen.frame.minX + notch.centerX - size.width / 2).rounded(),
-            y: screen.frame.maxY - size.height,
+            y: screen.frame.maxY - layout.hangY - size.height,
             width: size.width, height: size.height
         ), display: false)
         let bounds = NSRect(origin: .zero, size: size)
@@ -97,7 +98,7 @@ final class NotchPresentation: PrompterPresentation {
 
     private func installOverlays(layout: PrompterLayout, size: CGSize) {
         overlay?.removeFromSuperview()
-        let overlay = PassthroughHostingView(rootView: PrompterOverlay(state: state, showsStatusRow: !layout.notch.isHardware, scale: 0.8))
+        let overlay = PassthroughHostingView(rootView: PrompterOverlay(state: state, showsStatusRow: false, scale: 0.8))
         overlay.sizingOptions = []
         overlay.frame = text.frame
         let state = self.state
@@ -109,17 +110,12 @@ final class NotchPresentation: PrompterPresentation {
         }
         content.addSubview(overlay)
         self.overlay = overlay
-        wings.forEach { $0.removeFromSuperview() }
-        wings = []
-        guard let frames = layout.wingFrames else { return }
-        let left = NSHostingView(rootView: AnyView(TimerLabel(state: state).opacity(Preferences.showsTimer ? 1 : 0).frame(maxWidth: .infinity, alignment: .trailing).padding(.trailing, 14)))
-        let right = NSHostingView(rootView: AnyView(LevelLabel(state: state).frame(maxWidth: .infinity, alignment: .leading).padding(.leading, 14)))
-        for (view, frame) in [(left, frames.left), (right, frames.right)] {
-            view.sizingOptions = []
-            view.frame = flipped(frame, in: size)
-            content.addSubview(view)
-            wings.append(view)
-        }
+        statusRow?.removeFromSuperview()
+        let row = NSHostingView(rootView: AnyView(StatusRow(state: state).padding(.horizontal, 16).padding(.top, 2)))
+        row.sizingOptions = []
+        row.frame = flipped(layout.statusFrame, in: size)
+        content.addSubview(row)
+        statusRow = row
     }
 
     func present() {
@@ -203,7 +199,7 @@ extension PrompterLayout {
     /// The open outline's bounding box in the canvas, top-left origin.
     var frameOfOpenShape: CGRect {
         let open = shape(open: true)
-        return CGRect(x: (canvasSize.width - open.outerWidth) / 2, y: open.top, width: open.outerWidth, height: open.height)
+        return CGRect(x: (canvasSize.width - open.outerWidth) / 2, y: 0, width: open.outerWidth, height: open.height)
     }
 }
 

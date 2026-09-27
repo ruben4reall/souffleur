@@ -106,15 +106,23 @@ struct NotchGeometryTests {
         #expect(notch == NotchMetrics(width: 180, height: 25, centerX: 1280, isHardware: false))
     }
 
-    @Test func thePrompterHangsFromTheNotchAndWidensBelowIt() {
+    @Test func thePrompterHangsBelowTheNotchLeavingTheMenuBarFree() {
         let notch = NotchMetrics(width: 188, height: 32, centerX: 756, isHardware: true)
         let layout = PrompterLayout(notch: notch, width: 520, textHeight: 150)
-        let closed = layout.shape(open: false)
         let open = layout.shape(open: true)
-        #expect(closed.width == 188 && closed.height == 32 && closed.top == 0)
-        #expect(open.width == 520 && open.height == 32 + 150 && open.top == 0)
-        #expect(layout.textFrame.minY == 32)
+        // It hangs from the notch's lower edge: nothing of it covers the menu bar beside the camera.
+        #expect(layout.hangY == 32)
+        #expect(layout.shape(open: false).width == 188)
+        #expect(open.width == 520 && open.height == PrompterLayout.statusHeight + 150)
+        // The timer and the voice sit in a band at its top, the text below it.
+        #expect(layout.statusFrame.minY == 0 && layout.statusFrame.height == PrompterLayout.statusHeight)
+        #expect(layout.textFrame.minY == PrompterLayout.statusHeight)
         #expect(layout.textFrame.width == 520)
+    }
+
+    @Test func thePrompterStaysWiderThanTheNotch() {
+        let notch = NotchMetrics(width: 188, height: 32, centerX: 756, isHardware: true)
+        #expect(PrompterLayout(notch: notch, width: 200, textHeight: 100).shape(open: true).width >= 248)
     }
 
     @Test func theOpenPrompterKeepsTheClassicProportions() {
@@ -130,21 +138,18 @@ struct NotchGeometryTests {
     @Test func withoutANotchThePrompterHangsFromTheMenuBar() {
         let notch = NotchMetrics(width: 180, height: 25, centerX: 1280, isHardware: false)
         let layout = PrompterLayout(notch: notch, width: 520, textHeight: 150)
-        let open = layout.shape(open: true)
-        let closed = layout.shape(open: false)
-        #expect(open.top == 25 && closed.top == 25)
-        #expect(open.height == 150)
-        #expect(open.earRadius > 0)
-        #expect(layout.textFrame.minY == 25)
-        #expect(layout.wingFrames == nil)
+        #expect(layout.hangY == 25)
+        #expect(layout.shape(open: true).earRadius > 0)
+        #expect(layout.textFrame.minY == PrompterLayout.statusHeight)
     }
 
-    @Test func theOutlineIsClosedAndCentred() {
+    @Test func theOutlineIsClosedCentredAndHangsFromItsTopEdge() {
         let shape = PrompterShape(width: 200, height: 100, earRadius: 10, cornerRadius: 20)
         let box = PrompterPath.make(shape, centerX: 300).boundingBoxOfPath
         #expect(abs(box.midX - 300) < 0.5)
         #expect(abs(box.width - 220) < 0.5)
         #expect(abs(box.height - 100) < 0.5)
+        #expect(abs(box.minY) < 0.5)
     }
 }
 

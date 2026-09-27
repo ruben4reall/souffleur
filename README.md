@@ -40,8 +40,9 @@ a phone remote, clicker support, a full screen mirror for rigs and a coach after
   are heard right.
 - **Four ways to scroll.** Voice Pace (rolls while you speak, the default), Voice Follow, Auto Scroll (a steady pace
   in words per minute) and Manual.
-- **Three places.** In the notch, with the time and your voice either side of the camera and a violet light inside;
-  floating anywhere, in glass; or full screen on any display, mirrored for a teleprompter rig.
+- **Three places.** Right below the notch, leaving the menu bar free, with the time and your voice in a band at its top
+  and a violet light inside; floating anywhere, in glass; or full screen on any display, mirrored for a teleprompter
+  rig.
 - **Hands free.** Global shortcuts, presentation clickers and foot pedals (Page Up and Page Down), a phone remote over
   your local network, `souffleur://` links and Shortcuts actions.
 - **Scripts.** A library of plain Markdown files, light markup (`# headings`, `[cues]`, `**emphasis**`), and import from
@@ -110,6 +111,14 @@ that carry the pairing code, and only from your local network.
 
 **Markup.** All optional: a line starting with `#` is a heading, shown and never read; `[pause]` is a cue, shown quietly
 and never waited for; `**words**` are emphasised.
+
+## Other notch apps
+
+Souffleur hangs just below the notch and never covers the menu bar, so whatever Islet, NotchNook or boring.notch show
+beside the camera stays where it is. While the prompter is open it stays in front of their expanded views; they come
+back as soon as it closes. An app that wants to step aside can listen for two distributed notifications,
+`ch.rubencatalao.souffleur.prompterDidOpen` (its user info gives the `placement`: `notch`, `floating` or `fullScreen`)
+and `ch.rubencatalao.souffleur.prompterDidClose`.
 
 ## Privacy
 

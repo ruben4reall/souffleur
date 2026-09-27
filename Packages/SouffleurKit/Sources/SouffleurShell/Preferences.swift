@@ -3,10 +3,10 @@ import SouffleurCore
 
 /// How the script moves.
 public enum ScrollMode: String, CaseIterable, Identifiable, Sendable {
+    /// Rolls at the chosen pace while you speak, waits while you are silent. Any language, no recognition. The default.
+    case pace
     /// Speech recognition keeps the place, word by word.
     case voice
-    /// Rolls at the chosen pace while you speak, waits while you are silent. Any language, no recognition.
-    case pace
     /// Rolls at a constant pace.
     case auto
     /// Moves only with the shortcuts, a clicker, the remote or the trackpad.

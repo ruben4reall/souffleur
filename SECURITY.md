@@ -52,6 +52,12 @@ key API, which needs no permission and never sees other keystrokes.
 When you choose Open at Login, Souffleur registers itself with `SMAppService`. It shows in System Settings, General,
 Login Items.
 
+### Other apps
+
+When the prompter opens and closes, Souffleur posts the distributed notifications
+`ch.rubencatalao.souffleur.prompterDidOpen` and `ch.rubencatalao.souffleur.prompterDidClose`, so notch apps can step
+aside. They carry the placement (notch, floating or full screen) and nothing else: no script, no title.
+
 ### Screen capture
 
 The prompter's windows set `NSWindow.sharingType = .none` (Settings, Prompter, on by default). macOS then leaves them

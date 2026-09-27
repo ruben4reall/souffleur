@@ -39,37 +39,37 @@ public struct NotchMetrics: Equatable, Sendable {
     }
 }
 
-/// The prompter's outline: a body hanging from the top edge of the screen, or from the bottom of the menu bar on a
-/// screen without a notch, with concave ears where it meets what it hangs from and rounded lower corners.
+/// The prompter's outline: a body hanging from a straight top edge, with concave ears where it meets what it hangs
+/// from and rounded lower corners.
 public struct PrompterShape: Equatable, Sendable {
     /// Width of the body, ears excluded.
     public var width: CGFloat
     public var height: CGFloat
     public var earRadius: CGFloat
     public var cornerRadius: CGFloat
-    /// Distance of the top edge below the top of the screen: zero under a notch, the menu bar's height elsewhere.
-    public var top: CGFloat
 
-    public init(width: CGFloat, height: CGFloat, earRadius: CGFloat, cornerRadius: CGFloat, top: CGFloat = 0) {
+    public init(width: CGFloat, height: CGFloat, earRadius: CGFloat, cornerRadius: CGFloat) {
         self.width = width
         self.height = height
         self.earRadius = earRadius
         self.cornerRadius = cornerRadius
-        self.top = top
     }
 
     /// Width including both ears.
     public var outerWidth: CGFloat { width + earRadius * 2 }
 }
 
-/// Every size the notch prompter takes on one screen, in a top-left canvas big enough for all of them.
+/// Every size the notch prompter takes on one screen, in a top-left canvas big enough for all of them. The canvas
+/// starts at the prompter's top edge, which hangs `hangY` points below the top of the screen.
 public struct PrompterLayout: Equatable, Sendable {
     public let notch: NotchMetrics
     /// Width of the open prompter.
     public let width: CGFloat
-    /// Height of the text area below the camera.
+    /// Height of the text area.
     public let textHeight: CGFloat
 
+    /// The band at the top of the prompter that holds the timer and the voice.
+    public static let statusHeight: CGFloat = 22
     /// Room around the open prompter for the halo of light beneath it.
     static let shadowMargin: CGFloat = 24
     /// The classic notch prompter's proportions: ears of 25 points and lower corners of 13 on a body 400 points wide.
@@ -82,70 +82,62 @@ public struct PrompterLayout: Equatable, Sendable {
         self.textHeight = textHeight
     }
 
-    /// Under a notch the prompter grows out of the camera housing; elsewhere it drops from the menu bar.
+    /// Where the prompter hangs, in points below the top of the screen: from the notch's lower edge, or from the
+    /// menu bar on a screen without one. The menu bar stays free: its items, and whatever other apps show beside
+    /// the camera, are never covered.
+    public var hangY: CGFloat { notch.height }
+
+    /// Closed, a sliver under the notch; open, the prompter, always a little wider than the notch.
     public func shape(open: Bool) -> PrompterShape {
-        let top = notch.isHardware ? 0 : notch.height
-        guard open else {
-            return notch.isHardware
-                ? PrompterShape(width: notch.width, height: notch.height, earRadius: 4, cornerRadius: 9)
-                : PrompterShape(width: notch.width, height: 6, earRadius: 2, cornerRadius: 3, top: top)
-        }
-        let body = notch.isHardware ? max(width, notch.width + 150) : width
-        let height = (notch.isHardware ? notch.height : 0) + textHeight
-        return PrompterShape(width: body, height: height, earRadius: body * Self.earRatio, cornerRadius: body * Self.cornerRatio, top: top)
+        guard open else { return PrompterShape(width: notch.width, height: 6, earRadius: 2, cornerRadius: 3) }
+        let body = max(width, notch.width + 60)
+        return PrompterShape(width: body, height: Self.statusHeight + textHeight, earRadius: body * Self.earRatio, cornerRadius: body * Self.cornerRatio)
     }
 
     public var canvasSize: CGSize {
         let open = shape(open: true)
-        return CGSize(width: open.outerWidth + Self.shadowMargin * 2, height: open.top + open.height + Self.shadowMargin)
-    }
-
-    /// The text area of the open prompter in the canvas, top-left origin: below the camera, or below the menu bar.
-    public var textFrame: CGRect {
-        let open = shape(open: true)
-        return CGRect(x: (canvasSize.width - open.width) / 2, y: notch.height, width: open.width, height: textHeight)
+        return CGSize(width: open.outerWidth + Self.shadowMargin * 2, height: open.height + Self.shadowMargin)
     }
 
     /// The body of the open prompter, ears excluded, in the canvas, top-left origin.
     public var bodyFrame: CGRect {
         let open = shape(open: true)
-        return CGRect(x: (canvasSize.width - open.width) / 2, y: open.top, width: open.width, height: open.height)
+        return CGRect(x: (canvasSize.width - open.width) / 2, y: 0, width: open.width, height: open.height)
     }
 
-    /// The camera row of the open prompter, left and right of the notch, for the timer and the level meter.
-    public var wingFrames: (left: CGRect, right: CGRect)? {
-        guard notch.isHardware else { return nil }
-        let open = shape(open: true)
-        let bodyLeft = (canvasSize.width - open.width) / 2
-        let side = (open.width - notch.width) / 2
-        return (CGRect(x: bodyLeft, y: 0, width: side, height: notch.height),
-                CGRect(x: bodyLeft + side + notch.width, y: 0, width: side, height: notch.height))
+    /// The band for the timer and the voice, at the top of the body.
+    public var statusFrame: CGRect {
+        CGRect(x: bodyFrame.minX, y: 0, width: bodyFrame.width, height: Self.statusHeight)
+    }
+
+    /// The text area, below the band.
+    public var textFrame: CGRect {
+        CGRect(x: bodyFrame.minX, y: Self.statusHeight, width: bodyFrame.width, height: textHeight)
     }
 }
 
 public enum PrompterPath {
-    /// The outline in a top-left space: the top edge lies on y = `top` and the body is centred on `centerX`. Every
-    /// shape is built from the same sequence of segments, so Core Animation can morph one into another. The lower
-    /// corners ease into the straight edges (continuous curvature), softer than a circular arc.
+    /// The outline in a top-left space: the top edge lies on y = 0 and the body is centred on `centerX`. Every shape
+    /// is built from the same sequence of segments, so Core Animation can morph one into another. The lower corners
+    /// ease into the straight edges (continuous curvature), softer than a circular arc.
     public static func make(_ shape: PrompterShape, centerX: CGFloat) -> CGPath {
         let ear = max(0, min(shape.earRadius, shape.height / 3))
         let left = centerX - shape.width / 2
         let right = centerX + shape.width / 2
-        let top = shape.top
-        let bottom = shape.top + shape.height
+        let bottom = shape.height
         let radius = min(shape.cornerRadius, shape.height / 2, shape.width / 2)
-        let reach = max(0, min(radius * smoothing, bottom - top - ear, shape.width / 2))
+        let reach = max(0, min(radius * smoothing, bottom - ear, shape.width / 2))
         let handle = reach * handleRatio
 
         let path = CGMutablePath()
-        path.move(to: CGPoint(x: left - ear, y: top))
-        path.addQuadCurve(to: CGPoint(x: left, y: top + ear), control: CGPoint(x: left, y: top))
+        path.move(to: CGPoint(x: left - ear, y: 0))
+        path.addQuadCurve(to: CGPoint(x: left, y: ear), control: CGPoint(x: left, y: 0))
         path.addLine(to: CGPoint(x: left, y: bottom - reach))
         path.addCurve(to: CGPoint(x: left + reach, y: bottom), control1: CGPoint(x: left, y: bottom - handle), control2: CGPoint(x: left + handle, y: bottom))
         path.addLine(to: CGPoint(x: right - reach, y: bottom))
         path.addCurve(to: CGPoint(x: right, y: bottom - reach), control1: CGPoint(x: right - handle, y: bottom), control2: CGPoint(x: right, y: bottom - handle))
-        path.addLine(to: CGPoint(x: right, y: top + ear))
-        path.addQuadCurve(to: CGPoint(x: right + ear, y: top), control: CGPoint(x: right, y: top))
+        path.addLine(to: CGPoint(x: right, y: ear))
+        path.addQuadCurve(to: CGPoint(x: right + ear, y: 0), control: CGPoint(x: right, y: 0))
         path.closeSubpath()
         return path
     }

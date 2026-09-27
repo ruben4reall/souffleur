@@ -3,7 +3,8 @@ import SouffleurCore
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// The main window: the scripts on the left, the one being written on the right, and the Prompt button.
+/// The main window: the scripts on the left, the one being written on the right with its play button, and the speed
+/// card below it.
 public struct LibraryView: View {
     @Bindable var store: ScriptStore
     let app: Souffleur
