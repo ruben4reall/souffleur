@@ -17,6 +17,9 @@ Each release's section is what Souffleur's update window and the GitHub release 
 
 Fixed, after a full review of every feature:
 
+- **Souffleur no longer quits when the microphone starts.** In 1.1.0, pressing play in Voice Pace (the default) or
+  Voice Follow closed the app: the block the audio thread calls belonged to the main actor, and Swift's isolation
+  check stopped the app on the first buffer.
 - The buttons shown when the pointer rests on the prompter (restart, slower, pause, faster, close) work again: a click
   on them used to pause the script instead.
 - Moving a line back or on while the script rolls (Page Up, Page Down, ⌃⌥⌘← and →, the phone remote) no longer

@@ -121,7 +121,9 @@ public final class Listener {
         guard format.sampleRate > 0, format.channelCount > 0 else { return false }
         input.removeTap(onBus: 0)
         let tap = self.tap
-        input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in tap.process(buffer) }
+        // The audio thread calls this block: it must not belong to the main actor, or Swift's isolation check stops the
+        // app on the first buffer. It only hands the buffer to the tap, which is safe to use from any thread.
+        input.installTap(onBus: 0, bufferSize: 1024, format: format) { @Sendable buffer, _ in tap.process(buffer) }
         engine.prepare()
         do {
             try engine.start()
