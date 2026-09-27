@@ -71,15 +71,15 @@ private struct GeneralPane: View {
 private struct PrompterPane: View {
     let app: Souffleur
     @AppStorage(Preferences.Key.placement) private var placement = PrompterPlacement.notch.rawValue
-    @AppStorage(Preferences.Key.notchWidth) private var notchWidth = 380.0
-    @AppStorage(Preferences.Key.notchLines) private var notchLines = 3.0
+    @AppStorage(Preferences.Key.notchWidth) private var notchWidth = 360.0
+    @AppStorage(Preferences.Key.notchLines) private var notchLines = 4.0
     @AppStorage(Preferences.Key.floatingWidth) private var floatingWidth = 520.0
     @AppStorage(Preferences.Key.floatingHeight) private var floatingHeight = 200.0
     @AppStorage(Preferences.Key.fullScreenDisplay) private var fullScreenDisplay = ""
     @AppStorage(Preferences.Key.fullScreenFontSize) private var fullScreenFontSize = 64.0
     @AppStorage(Preferences.Key.font) private var font = PrompterFont.system.rawValue
     @AppStorage(Preferences.Key.fontSize) private var fontSize = 19.0
-    @AppStorage(Preferences.Key.lineSpacing) private var lineSpacing = 1.28
+    @AppStorage(Preferences.Key.lineSpacing) private var lineSpacing = 1.5
     @AppStorage(Preferences.Key.alignment) private var alignment = "center"
     @AppStorage(Preferences.Key.theme) private var theme = PrompterTheme.night.rawValue
     @AppStorage(Preferences.Key.dimsReadWords) private var dimsReadWords = true
@@ -162,7 +162,7 @@ private struct PrompterPane: View {
             Section {
                 Toggle(String(localized: "Hide from screen sharing and recordings", bundle: .module), isOn: $hiddenFromCapture)
             } footer: {
-                Text("Apps that respect macOS's capture protection won't see the prompter. Since macOS 15, some screen sharing and recording apps capture it anyway: share a window rather than your whole screen to be sure.", bundle: .module)
+                Text("The prompter stays on your screen and out of screenshots, screen recordings and screen sharing. Turn this off to show it in a tutorial.", bundle: .module)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -192,7 +192,7 @@ private struct PrompterPane: View {
 }
 
 private struct VoicePane: View {
-    @AppStorage(Preferences.Key.mode) private var mode = ScrollMode.voice.rawValue
+    @AppStorage(Preferences.Key.mode) private var mode = ScrollMode.pace.rawValue
     @AppStorage(Preferences.Key.voiceLanguage) private var language = "auto"
     @AppStorage(Preferences.Key.wordsPerMinute) private var pace = Pace.conversational
     @State private var locales: [Locale] = []

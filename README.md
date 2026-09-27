@@ -19,31 +19,37 @@
 In the theatre, the souffleur hides in a small box at the edge of the stage and whispers the next line. On a MacBook,
 that box is already there: the notch, a few millimetres from the lens.
 
-Souffleur is a free, open source teleprompter for the Mac, written in Swift. It hangs your script from the notch and
-follows your voice word by word, so you keep eye contact on every call, video and talk. It does what the paid notch
-prompters do, then adds a phone remote, clicker support, a full screen mirror for rigs and a coach after every take.
+Souffleur is a free, open source teleprompter for the Mac, written in Swift. It hangs your script from the notch,
+rolls it while you speak and stops the moment you do, and stays out of your screen recordings, so you keep eye
+contact on every call, video and talk. It does what the paid notch prompters do, then adds word by word voice follow,
+a phone remote, clicker support, a full screen mirror for rigs and a coach after every take.
 
 <p align="center">
-  <img src="docs/images/notch.webp" alt="Souffleur's prompter hanging from the notch of a MacBook, ringed with violet light: the words already read are dimmed and the next word is lit" width="800">
+  <img src="docs/images/notch.webp" alt="Souffleur's prompter hanging from the notch of a MacBook, lit from below with violet light: the line being read is bright and the next word is lit" width="800">
 </p>
 
 ## What it does
 
-- **Voice follow.** Speech is recognised on your Mac and lined up with your script: the words you have said dim, the
-  next one lights up, and the line you are on stays under the camera. Pause and it waits; skip a paragraph and it
-  finds you again. Numbers, contractions and accents are understood, and the recogniser is given your script's own
-  words, so names and jargon are heard right.
-- **Four ways to scroll.** Voice Follow, Voice Pace (rolls while you speak, any language), Auto Scroll (a steady pace
+- **Stops when you stop.** Press play and speak: the script rolls at your speed and waits as soon as you go quiet,
+  then rolls on when you speak again. Speech is detected on your Mac, in any language.
+- **Invisible in screen recordings.** The prompter is on your screen and out of screenshots, recordings and screen
+  sharing: your audience sees you, not your script.
+- **Voice follow.** Choose it, and the script follows your words one by one: the words you have said dim, the next
+  one lights up, and the line you are on stays under the camera. Skip a paragraph and it finds you again. Numbers,
+  contractions and accents are understood, and the recogniser is given your script's own words, so names and jargon
+  are heard right.
+- **Four ways to scroll.** Voice Pace (rolls while you speak, the default), Voice Follow, Auto Scroll (a steady pace
   in words per minute) and Manual.
-- **Three places.** In the notch, compact, with the time and your voice either side of the camera and a violet light
-  around it; floating anywhere, in glass; or full screen on any display, mirrored for a teleprompter rig.
+- **Three places.** In the notch, with the time and your voice either side of the camera and a violet light inside;
+  floating anywhere, in glass; or full screen on any display, mirrored for a teleprompter rig.
 - **Hands free.** Global shortcuts, presentation clickers and foot pedals (Page Up and Page Down), a phone remote over
   your local network, `souffleur://` links and Shortcuts actions.
 - **Scripts.** A library of plain Markdown files, light markup (`# headings`, `[cues]`, `**emphasis**`), and import from
   text, Markdown, RTF, Word, PDF and PowerPoint speaker notes.
 - **Coach.** Your pace live beside the camera, and after each take your time, pace and how much of the script you
   covered.
-- **Yours to shape.** Font, size, spacing, colours, width, lines, countdown, mirror, the language to listen in.
+- **Yours to shape.** Font, size, spacing, the colour of the light, width, lines, countdown, mirror, the language to
+  listen in.
 
 <p align="center">
   <img src="docs/images/library.webp" alt="The Souffleur window: the library on the left, the welcome script in the editor, and the Prompt button" width="800">
@@ -55,7 +61,8 @@ prompters do, then adds a phone remote, clicker support, a full screen mirror fo
 
 1. [Download Souffleur](https://github.com/ruben4reall/souffleur/releases/latest/download/Souffleur.dmg), open the disk
    image and drag Souffleur to Applications.
-2. Open it. A short welcome shows what it does and asks for the microphone only if you choose a voice mode.
+2. Open it. A short welcome shows what it does. Souffleur asks for the microphone when you first press play, to hear
+   when you speak; choose Auto Scroll and it never does.
 
 Releases are signed with a Developer ID and notarized by Apple.
 
@@ -78,7 +85,7 @@ settings in `~/Library/Preferences/ch.rubencatalao.souffleur.plist`. With Homebr
 
 ## Use it
 
-Write or drop a script, press **Prompt** (⌘↩), look at the camera and speak.
+Write or drop a script, press the play button (⌘↩), look at the camera and speak.
 
 | Shortcut | What it does |
 |---|---|
@@ -111,12 +118,13 @@ and never waited for; `**words**` are emphasised.
 
 [SECURITY.md](SECURITY.md) lists everything Souffleur touches on your Mac.
 
-## Screen sharing, honestly
+## Invisible in screen recordings
 
-The prompter's windows ask macOS to keep them out of screenshots, recordings and screen sharing, and apps that respect
-that protection will not see your script. Since macOS 15, apps that capture the screen with ScreenCaptureKit can
-capture such windows anyway; no Mac app can prevent it. To be sure nobody sees your script, share a window rather than
-your whole screen.
+The prompter asks macOS to leave it out of screenshots, screen recordings and screen sharing, and macOS does. On
+macOS 26.5 we checked the Mac's own screenshots and screen recordings, and a capture made with ScreenCaptureKit, the
+framework screen recorders and meeting apps are built on: the prompter is on the screen and nowhere in the picture.
+Your audience sees you, not your script. What no app can hide it from: a display that mirrors your screen, or a
+camera pointed at it. To show the prompter in a tutorial, turn this off in Settings, Prompter.
 
 ## Compatible Macs
 

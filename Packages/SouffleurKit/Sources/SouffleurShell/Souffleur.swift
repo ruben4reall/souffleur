@@ -198,6 +198,7 @@ public final class Souffleur {
             takenShortcuts = []
         }
         updateClickerKeys()
+        prompter.paceChanged()
         if Preferences.remoteEnabled, !remote.isRunning { remote.start() }
         if !Preferences.remoteEnabled, remote.isRunning { remote.stop() }
         let policy: NSApplication.ActivationPolicy = Preferences.showsDockIcon ? .regular : .accessory

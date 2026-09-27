@@ -32,6 +32,8 @@ public final class PrompterController {
     public var demoStop: Int?
     /// A place for the next takes that leaves the user's setting alone, for demos.
     public var placementOverride: PrompterPlacement?
+    /// Shows the prompter without its text, for a picture of the empty prompter.
+    public var demoBlank = false
     private var demoTask: Task<Void, Never>?
 
     public init() {
@@ -80,6 +82,7 @@ public final class PrompterController {
         presentation.refresh()
         wire(presentation.text)
         presentation.text.load(script, style: PrompterStyle.current(fullScreen: placement == .fullScreen))
+        presentation.text.isHidden = demoBlank
         markVoicePlace()
         presentation.present()
         beginAfterCountdown()
@@ -131,7 +134,7 @@ public final class PrompterController {
         // The recogniser gets ready during the countdown, so the first words are heard.
         if state.mode.listens, !(state.mode == .voice && demoVoice) { startListening(recognize: state.mode == .voice) }
         guard Preferences.countdown else { return begin() }
-        presentation?.glow(0.9)
+        presentation?.glow(1)
         countdown = Task { [weak self] in
             for number in [3, 2, 1] {
                 self?.state.phase = .countdown(number)
@@ -210,18 +213,17 @@ public final class PrompterController {
         onChange?()
     }
 
-    /// The stage light: bright during the countdown, breathing with the voice while listening, steady while
-    /// rolling on its own, low when paused.
+    /// The stage light: the resting light while the script rolls, a little brighter as the voice rises and a little
+    /// lower in a silence while listening, low when paused.
     private func updateGlow() {
         let intensity: CGFloat = switch state.phase {
         case .idle: 0
-        case .countdown: 0.9
-        case .paused: 0.18
-        case .finished: 0.7
+        case .countdown, .finished: 1
+        case .paused: 0.45
         case .rolling:
             state.mode.listens
-                ? 0.42 + (state.isSpeaking ? 0.58 * min(1, CGFloat(state.level) * 1.4) : 0)
-                : 0.55
+                ? (state.isSpeaking ? 0.9 + 0.4 * min(1, CGFloat(state.level) * 1.4) : 0.75)
+                : 1
         }
         presentation?.glow(intensity)
     }
@@ -236,6 +238,14 @@ public final class PrompterController {
         presentation.text.setOffset(0)
         markVoicePlace()
         beginAfterCountdown()
+        onChange?()
+    }
+
+    /// The speed slider moved: a take rolling at a steady pace follows it at once.
+    public func paceChanged() {
+        guard Preferences.wordsPerMinute != state.wordsPerMinute else { return }
+        state.wordsPerMinute = Preferences.wordsPerMinute
+        if state.phase == .rolling, state.mode == .auto { presentation?.text.setSpeed(autoSpeed, eased: true) }
         onChange?()
     }
 

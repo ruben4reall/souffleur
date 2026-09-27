@@ -88,28 +88,32 @@ struct NotchGeometryTests {
         let layout = PrompterLayout(notch: notch, width: 520, textHeight: 150)
         let closed = layout.shape(open: false)
         let open = layout.shape(open: true)
-        #expect(closed.width == 188 && closed.height == 32 && closed.gap == 0)
-        #expect(open.width == 520 && open.height == 32 + 150 && open.gap == 0)
+        #expect(closed.width == 188 && closed.height == 32 && closed.top == 0)
+        #expect(open.width == 520 && open.height == 32 + 150 && open.top == 0)
         #expect(layout.textFrame.minY == 32)
         #expect(layout.textFrame.width == 520)
     }
 
-    @Test func withoutANotchThePrompterFloatsUnderTheMenuBar() {
+    @Test func theOpenPrompterKeepsTheClassicProportions() {
+        let notch = NotchMetrics(width: 188, height: 32, centerX: 756, isHardware: true)
+        let open = PrompterLayout(notch: notch, width: 400, textHeight: 136).shape(open: true)
+        // Ears of 25 points and lower corners of 13 on a prompter 400 points wide, in proportion at any width.
+        #expect(abs(open.earRadius - 25) < 0.01)
+        #expect(abs(open.cornerRadius - 13) < 0.01)
+        let narrow = PrompterLayout(notch: notch, width: 360, textHeight: 136).shape(open: true)
+        #expect(abs(narrow.earRadius - 22.5) < 0.01)
+    }
+
+    @Test func withoutANotchThePrompterHangsFromTheMenuBar() {
         let notch = NotchMetrics(width: 180, height: 25, centerX: 1280, isHardware: false)
         let layout = PrompterLayout(notch: notch, width: 520, textHeight: 150)
         let open = layout.shape(open: true)
-        #expect(open.gap > 25)
-        #expect(open.isFloating)
-        #expect(layout.textFrame.minY == open.gap)
-    }
-
-    @Test func theRimLeavesOutTheEdgeAgainstTheScreen() {
-        let hanging = PrompterShape(width: 200, height: 100, earRadius: 10, cornerRadius: 20)
-        let rim = PrompterPath.rim(hanging, centerX: 300)
-        // Open: it starts at the left ear on the top edge and ends at the right one.
-        #expect(rim.currentPoint == CGPoint(x: 410, y: 0))
-        let floating = PrompterShape(width: 200, height: 100, earRadius: 0, cornerRadius: 20, gap: 30)
-        #expect(PrompterPath.rim(floating, centerX: 300).boundingBoxOfPath == PrompterPath.make(floating, centerX: 300).boundingBoxOfPath)
+        let closed = layout.shape(open: false)
+        #expect(open.top == 25 && closed.top == 25)
+        #expect(open.height == 150)
+        #expect(open.earRadius > 0)
+        #expect(layout.textFrame.minY == 25)
+        #expect(layout.wingFrames == nil)
     }
 
     @Test func theOutlineIsClosedAndCentred() {

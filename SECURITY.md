@@ -54,5 +54,6 @@ Login Items.
 
 ### Screen capture
 
-The prompter's windows set `NSWindow.sharingType = .none` (Settings, Prompter, on by default). Since macOS 15,
-ScreenCaptureKit does not honour it, so apps built on it can capture the prompter; the README says so plainly.
+The prompter's windows set `NSWindow.sharingType = .none` (Settings, Prompter, on by default). macOS then leaves them
+out of screenshots, screen recordings and screen sharing, ScreenCaptureKit included: checked on macOS 26.5 with the
+Mac's own screenshots and recordings and with a ScreenCaptureKit capture of the whole display.
