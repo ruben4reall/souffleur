@@ -1,0 +1,19 @@
+name: ci
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  core:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - name: Test SouffleurKit
+        run: swift test --package-path Packages/SouffleurKit
+  app:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Build Souffleur.app (ad hoc signature)
+        run: scripts/build.sh Debug

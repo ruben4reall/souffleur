@@ -19,6 +19,8 @@ public enum ListenerFailure: Error, Sendable, Equatable {
     case speechDenied
     case languageUnsupported(String)
     case microphoneUnavailable
+    /// The recogniser kept failing; the listener carries on with the level only.
+    case recognitionStopped
 
     public var message: String {
         switch self {
@@ -26,6 +28,7 @@ public enum ListenerFailure: Error, Sendable, Equatable {
         case .speechDenied: String(localized: "Speech recognition is off for Souffleur.", bundle: .module)
         case .languageUnsupported(let name): String(localized: "Voice follow can't hear \(name) on this Mac yet. Rolling at your pace instead.", bundle: .module)
         case .microphoneUnavailable: String(localized: "No microphone is available.", bundle: .module)
+        case .recognitionStopped: String(localized: "Voice follow stopped hearing words. Rolling at your pace instead.", bundle: .module)
         }
     }
 
@@ -37,78 +40,155 @@ public enum ListenerFailure: Error, Sendable, Equatable {
         default: nil
         }
     }
+
+    /// Failures after which the take goes on at the reader's pace, the microphone still listening for the level.
+    public var fallsBackToPace: Bool {
+        switch self {
+        case .languageUnsupported, .recognitionStopped: true
+        default: false
+        }
+    }
 }
 
-/// Listens to the microphone while the prompter runs: the level for voice pace and the meter, and, for voice follow,
-/// the words recognised on this Mac. Nothing runs while the prompter is closed.
-public final class Listener: @unchecked Sendable {
+/// Listens to the microphone while a take runs: the level for voice pace and the meter, and, for voice follow, the
+/// words recognised on this Mac. Nothing runs while the prompter is closed.
+///
+/// Every start is a numbered session: a stop, or a newer start, while an older one still waits for a permission or a
+/// voice model makes that older one give up, so the microphone never stays open after the prompter has closed.
+@MainActor
+public final class Listener {
     private let engine = AVAudioEngine()
-    private let lock = NSLock()
-    private var recognizer: RecognitionEngine?
-    private var onEvent: (@Sendable (ListenerEvent) -> Void)?
+    private let tap = Tap()
+    private var session = 0
     private var isRunning = false
-    // Voice activity: an adaptive noise floor, and speech when the level stays well above it.
-    private var noiseFloor: Float = -50
-    private var lastVoice: TimeInterval = 0
-    private var lastLevelReport: TimeInterval = 0
+    private var configuration: NSObjectProtocol?
 
     public init() {}
 
-    /// Starts listening. With `recognize`, words are recognised in `locale`, helped by the script's vocabulary.
+    /// Starts listening. With `recognize`, words are recognised in `locale`, helped by the script's vocabulary; if
+    /// they cannot be, the failure is reported and the level keeps coming.
     public func start(recognize: Bool, locale: Locale, vocabulary: [String], onEvent: @escaping @Sendable (ListenerEvent) -> Void) async {
         stop()
-        self.onEvent = onEvent
-        guard await Permissions.microphone() else { return report(.failed(.microphoneDenied)) }
-        var engineForSpeech: RecognitionEngine?
+        session += 1
+        let current = session
+        tap.handler = onEvent
+        guard await Permissions.microphone() else { return tap.report(.failed(.microphoneDenied)) }
+        guard current == session else { return }
         if recognize {
-            guard await Permissions.speech() else { return report(.failed(.speechDenied)) }
+            guard await Permissions.speech() else { return tap.report(.failed(.speechDenied)) }
+            guard current == session else { return }
             do {
-                engineForSpeech = try await RecognitionEngine.make(locale: locale, vocabulary: vocabulary, report: { [weak self] event in self?.report(event) })
+                let recognition = try await RecognitionEngine.make(locale: locale, vocabulary: vocabulary, report: tap.report)
+                guard current == session else { return recognition.stop() }
+                tap.recognizer = recognition
             } catch {
+                guard current == session else { return }
                 let name = Locale.current.localizedString(forIdentifier: locale.identifier) ?? locale.identifier
-                report(.failed(.languageUnsupported(name)))
+                tap.report(.failed(.languageUnsupported(name)))
             }
         }
-        lock.withLock { recognizer = engineForSpeech }
+        guard startEngine() else { return tap.report(.failed(.microphoneUnavailable)) }
+        // A microphone plugged in or AirPods connecting change the input: listen again on the new one.
+        configuration = NotificationCenter.default.addObserver(forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, self.isRunning else { return }
+                self.stopEngine()
+                if !self.startEngine() { self.tap.report(.failed(.microphoneUnavailable)) }
+            }
+        }
+    }
+
+    /// Stops everything, including a start still waiting.
+    public func stop() {
+        session += 1
+        if let configuration { NotificationCenter.default.removeObserver(configuration) }
+        configuration = nil
+        stopEngine()
+        dropRecognition()
+        tap.handler = nil
+    }
+
+    /// Stops recognising words but keeps the level coming, for voice pace.
+    public func dropRecognition() {
+        let recognition = tap.recognizer
+        tap.recognizer = nil
+        recognition?.stop()
+    }
+
+    private func startEngine() -> Bool {
         let input = engine.inputNode
         let format = input.outputFormat(forBus: 0)
-        guard format.sampleRate > 0, format.channelCount > 0 else { return report(.failed(.microphoneUnavailable)) }
+        guard format.sampleRate > 0, format.channelCount > 0 else { return false }
         input.removeTap(onBus: 0)
-        input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
-            self?.process(buffer)
-        }
+        let tap = self.tap
+        input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in tap.process(buffer) }
         engine.prepare()
         do {
             try engine.start()
             isRunning = true
+            return true
         } catch {
             input.removeTap(onBus: 0)
-            report(.failed(.microphoneUnavailable))
+            return false
         }
     }
 
-    public func stop() {
-        if isRunning {
-            engine.inputNode.removeTap(onBus: 0)
-            engine.stop()
-            isRunning = false
-        }
-        let current = lock.withLock { () -> RecognitionEngine? in
-            defer { recognizer = nil }
-            return recognizer
-        }
-        current?.stop()
-        onEvent = nil
+    private func stopEngine() {
+        guard isRunning else { return }
+        engine.inputNode.removeTap(onBus: 0)
+        engine.stop()
+        isRunning = false
     }
 
-    private func report(_ event: ListenerEvent) {
-        let handler = onEvent
-        DispatchQueue.main.async { handler?(event) }
+    /// The language to listen in: the one chosen in Settings, or the one the script is written in.
+    public nonisolated static func locale(for text: String, preference: String) -> Locale {
+        if preference != "auto" { return Locale(identifier: preference) }
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(String(text.prefix(4000)))
+        guard let language = recognizer.dominantLanguage?.rawValue else { return Locale.current }
+        // Keep the user's region when it goes with that language (fr_CH for a French script in Switzerland).
+        if Locale.current.language.languageCode?.identifier == language { return Locale.current }
+        return Locale(identifier: language)
     }
 
-    /// On the audio thread: the level, voice activity, and the buffer for the recogniser.
-    private func process(_ buffer: AVAudioPCMBuffer) {
-        lock.withLock { recognizer }?.append(buffer)
+    /// The distinct words of the script, longest first, for the recogniser's contextual vocabulary.
+    public nonisolated static func vocabulary(of words: [String], limit: Int = 100) -> [String] {
+        var seen = Set<String>()
+        let unique = words.filter { $0.count > 3 && seen.insert($0.lowercased()).inserted }
+        return Array(unique.sorted { $0.count > $1.count }.prefix(limit))
+    }
+}
+
+/// What the audio thread needs, behind a lock: where to send events, the recogniser, and the voice activity state.
+private final class Tap: @unchecked Sendable {
+    private let lock = NSLock()
+    private var _handler: (@Sendable (ListenerEvent) -> Void)?
+    private var _recognizer: RecognitionEngine?
+    // Voice activity: an adaptive noise floor, and speech when the level stays well above it. Audio thread only.
+    private var noiseFloor: Float = -50
+    private var lastVoice: TimeInterval = 0
+    private var lastLevelReport: TimeInterval = 0
+
+    var handler: (@Sendable (ListenerEvent) -> Void)? {
+        get { lock.withLock { _handler } }
+        set { lock.withLock { _handler = newValue } }
+    }
+
+    var recognizer: RecognitionEngine? {
+        get { lock.withLock { _recognizer } }
+        set { lock.withLock { _recognizer = newValue } }
+    }
+
+    /// Sends an event to the main queue, to the handler of the moment it arrives there.
+    var report: @Sendable (ListenerEvent) -> Void {
+        { [weak self] event in
+            DispatchQueue.main.async { self?.handler?(event) }
+        }
+    }
+
+    /// On the audio thread: the buffer for the recogniser, the level and voice activity.
+    func process(_ buffer: AVAudioPCMBuffer) {
+        recognizer?.append(buffer)
         guard let samples = buffer.floatChannelData?[0] else { return }
         let count = Int(buffer.frameLength)
         guard count > 0 else { return }
@@ -124,26 +204,7 @@ public final class Listener: @unchecked Sendable {
         let speaking = now - lastVoice < 0.45
         guard now - lastLevelReport > 1.0 / 20 else { return }
         lastLevelReport = now
-        let level = min(max((decibels + 60) / 50, 0), 1)
-        report(.level(level, speaking: speaking))
-    }
-
-    /// The language to listen in: the one chosen in Settings, or the one the script is written in.
-    public static func locale(for text: String, preference: String) -> Locale {
-        if preference != "auto" { return Locale(identifier: preference) }
-        let recognizer = NLLanguageRecognizer()
-        recognizer.processString(String(text.prefix(4000)))
-        guard let language = recognizer.dominantLanguage?.rawValue else { return Locale.current }
-        // Keep the user's region when it goes with that language (fr_CH for a French script in Switzerland).
-        if Locale.current.language.languageCode?.identifier == language { return Locale.current }
-        return Locale(identifier: language)
-    }
-
-    /// The distinct words of the script, longest first, for the recogniser's contextual vocabulary.
-    public static func vocabulary(of words: [String], limit: Int = 100) -> [String] {
-        var seen = Set<String>()
-        let unique = words.filter { $0.count > 3 && seen.insert($0.lowercased()).inserted }
-        return Array(unique.sorted { $0.count > $1.count }.prefix(limit))
+        report(.level(min(max((decibels + 60) / 50, 0), 1), speaking: speaking))
     }
 }
 

@@ -65,7 +65,8 @@ public struct VoiceTracker {
                 }
             }
         }
-        if let best, best.end >= position, accepts(score: best.score, distance: best.end - position, heard: heard.count) {
+        if let best, best.end >= position, accepts(score: best.score, distance: best.end - position, heard: heard.count),
+           best.end - position < 2 || evidence(heard, from: position, to: best.end) {
             return move(to: best.end + 1)
         }
         if let best, best.end < position, best.score >= 2 { return false }
@@ -96,6 +97,14 @@ public struct VoiceTracker {
     private func accepts(score: Int, distance: Int, heard: Int) -> Bool {
         if score >= 2 { return true }
         return distance <= 1 && heard <= 2
+    }
+
+    /// True when at least one word heard before the last lines up with the words being skipped, `from` up to `end`.
+    /// Without it, a match made of words already read plus one word said off script would jump ahead.
+    private func evidence(_ heard: [String], from start: Int, to end: Int) -> Bool {
+        guard start < end else { return true }
+        let skipped = tokens[start..<end]
+        return heard.dropLast().contains { word in skipped.contains { Self.similar($0, word) } }
     }
 
     /// How many of the heard tokens line up, in order, with the script tokens that end at `end`, the last heard

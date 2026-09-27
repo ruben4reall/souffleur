@@ -30,6 +30,11 @@ class RecognitionEngine: @unchecked Sendable {
     }
 }
 
+/// Whether the converter has had its one buffer.
+private final class Given: @unchecked Sendable {
+    var done = false
+}
+
 /// The last `count` words of a text.
 func tail(_ text: String, words count: Int) -> String {
     text.split(whereSeparator: { $0.isWhitespace }).suffix(count).joined(separator: " ")
@@ -80,7 +85,9 @@ final class AnalyzerEngine: RecognitionEngine, @unchecked Sendable {
                         report(.heard(tail(finished + " " + text, words: 24), final: nil))
                     }
                 }
-            } catch {}
+            } catch {
+                if !Task.isCancelled { report(.failed(.recognitionStopped)) }
+            }
         }
     }
 
@@ -99,14 +106,15 @@ final class AnalyzerEngine: RecognitionEngine, @unchecked Sendable {
         let ratio = format.sampleRate / buffer.format.sampleRate
         let capacity = AVAudioFrameCount((Double(buffer.frameLength) * ratio).rounded(.up)) + 16
         guard let output = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: capacity) else { return }
-        var consumed = false
+        // The converter asks for input synchronously, inside `convert`: one buffer, then nothing more for now.
+        let given = Given()
         var error: NSError?
         converter.convert(to: output, error: &error) { _, status in
-            if consumed {
+            if given.done {
                 status.pointee = .noDataNow
                 return nil
             }
-            consumed = true
+            given.done = true
             status.pointee = .haveData
             return buffer
         }
@@ -136,6 +144,8 @@ final class LegacyEngine: RecognitionEngine, @unchecked Sendable {
     private var task: SFSpeechRecognitionTask?
     private var stopped = false
     private var finished = ""
+    /// Errors in a row without a word heard; five end the recognition.
+    private var failures = 0
 
     /// Nil unless the language can be recognised on this Mac: Souffleur never sends a voice to a server.
     init?(locale: Locale, vocabulary: [String], report: @escaping @Sendable (ListenerEvent) -> Void) {
@@ -153,31 +163,45 @@ final class LegacyEngine: RecognitionEngine, @unchecked Sendable {
         request.contextualStrings = vocabulary
         request.addsPunctuation = false
         request.requiresOnDeviceRecognition = true
-        lock.withLock { self.request = request }
-        task = recognizer.recognitionTask(with: request) { [weak self] result, error in
+        let task = recognizer.recognitionTask(with: request) { [weak self] result, error in
             guard let self else { return }
             if let result {
                 let text = result.bestTranscription.formattedString
                 let recent = tail(self.finished + " " + text, words: 24)
+                self.lock.withLock { self.failures = 0 }
                 self.report(.heard(recent, final: result.isFinal ? text : nil))
                 if result.isFinal {
                     self.finished = recent
-                    self.restart()
+                    self.restart(afterError: false)
                 }
             } else if error != nil {
-                self.restart()
+                self.restart(afterError: true)
             }
         }
-    }
-
-    private func restart() {
-        let stop = lock.withLock { () -> Bool in
-            request?.endAudio()
-            request = nil
+        let cancel = lock.withLock { () -> Bool in
+            self.request = request
+            self.task = task
             return stopped
         }
+        if cancel { task.cancel() }
+    }
+
+    /// A new task once the sentence is over or after an error, a little later each time errors follow each other.
+    private func restart(afterError: Bool) {
+        let (stop, failures) = lock.withLock { () -> (Bool, Int) in
+            request?.endAudio()
+            request = nil
+            if afterError { self.failures += 1 }
+            if self.failures >= 5 { stopped = true }
+            return (stopped, self.failures)
+        }
+        if failures >= 5 {
+            report(.failed(.recognitionStopped))
+            return
+        }
         guard !stop else { return }
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) { [weak self] in
+        let delay = min(2, 0.1 * pow(2, Double(max(0, failures - 1))))
+        DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [weak self] in
             guard let self, !self.lock.withLock({ self.stopped }) else { return }
             self.begin()
         }
@@ -188,12 +212,13 @@ final class LegacyEngine: RecognitionEngine, @unchecked Sendable {
     }
 
     override func stop() {
-        lock.withLock {
+        let task = lock.withLock { () -> SFSpeechRecognitionTask? in
             stopped = true
             request?.endAudio()
             request = nil
+            defer { self.task = nil }
+            return self.task
         }
         task?.cancel()
-        task = nil
     }
 }

@@ -26,8 +26,19 @@ struct PrompterStyle: Equatable {
     var bodyFont: NSFont { font.font(size: size, weight: .medium) }
 
     /// Height of one line of body text, spacing included.
-    var lineHeight: CGFloat {
-        NSLayoutManager().defaultLineHeight(for: bodyFont) * spacing
+    @MainActor var lineHeight: CGFloat { Self.lineHeight(font: font, size: size, spacing: spacing) }
+
+    @MainActor private static let measurer = NSLayoutManager()
+
+    @MainActor private static var lineHeights: [String: CGFloat] = [:]
+
+    /// Measured once per font, size and spacing: the voice asks for it twenty times a second.
+    @MainActor static func lineHeight(font: PrompterFont, size: CGFloat, spacing: CGFloat) -> CGFloat {
+        let key = "\(font.rawValue) \(size) \(spacing)"
+        if let known = lineHeights[key] { return known }
+        let value = measurer.defaultLineHeight(for: font.font(size: size, weight: .medium)) * spacing
+        lineHeights[key] = value
+        return value
     }
 }
 
@@ -76,6 +87,9 @@ final class ScriptTextView: NSView {
     private var easedTarget: CGFloat?
 
     func setSpeed(_ value: CGFloat, eased: Bool) {
+        // Silence after silence: nothing to change, and no display link to start.
+        if value == speed, easedTarget == nil { return }
+        if eased, easedTarget == value { return }
         if eased {
             easedTarget = value
             run()
@@ -175,6 +189,7 @@ final class ScriptTextView: NSView {
 
     override func layout() {
         super.layout()
+        cachedWordsPerLine = nil
         scrollView.frame = bounds
         textView.textContainerInset = NSSize(width: horizontalInset, height: readingInset)
         textView.frame.size.width = bounds.width
@@ -245,13 +260,17 @@ final class ScriptTextView: NSView {
         return (storage.string as NSString).substring(with: characters).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// Average number of spoken words on a line, for turning a pace into a scrolling speed.
+    /// Average number of spoken words on a line, for turning a pace into a scrolling speed. Counted once per layout.
     var wordsPerLine: Double {
+        if let cachedWordsPerLine { return cachedWordsPerLine }
         guard let manager = textView.layoutManager, !script.words.isEmpty else { return 8 }
         var lines = 0
         manager.enumerateLineFragments(forGlyphRange: NSRange(location: 0, length: manager.numberOfGlyphs)) { _, _, _, _, _ in lines += 1 }
-        return max(1, Double(script.words.count) / Double(max(lines, 1)))
+        let value = max(1, Double(script.words.count) / Double(max(lines, 1)))
+        cachedWordsPerLine = value
+        return value
     }
+    private var cachedWordsPerLine: Double?
 
     // MARK: Colours of the words
 

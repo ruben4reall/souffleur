@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 import SouffleurCore
@@ -43,6 +44,9 @@ public final class ScriptStore {
 
     @ObservationIgnored private let folder: URL
     @ObservationIgnored private var pendingSaves: [String: Task<Void, Never>] = [:]
+    /// Scripts whose last change is not on disk yet: written again at the next change or when quitting.
+    @ObservationIgnored private var unsaved: Set<String> = []
+    @ObservationIgnored private var warnedAboutSaving = false
 
     public init(folder: URL? = nil) {
         self.folder = folder ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -77,7 +81,7 @@ public final class ScriptStore {
     public func create(text: String = "") -> ScriptDocument {
         let document = ScriptDocument(id: UUID().uuidString, text: text, modified: Date())
         documents.insert(document, at: 0)
-        write(document)
+        save(document)
         selection = document.id
         return document
     }
@@ -88,11 +92,13 @@ public final class ScriptStore {
         documents[index].text = text
         documents[index].modified = Date()
         let document = documents[index]
+        unsaved.insert(id)
         pendingSaves[id]?.cancel()
         pendingSaves[id] = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(400))
-            guard !Task.isCancelled else { return }
-            self?.write(document)
+            guard !Task.isCancelled, let self else { return }
+            self.pendingSaves[id] = nil
+            self.save(document)
         }
     }
 
@@ -104,6 +110,8 @@ public final class ScriptStore {
     public func delete(_ id: String) {
         guard let index = documents.firstIndex(where: { $0.id == id }) else { return }
         pendingSaves[id]?.cancel()
+        pendingSaves[id] = nil
+        unsaved.remove(id)
         let url = fileURL(id)
         // To the Trash rather than gone: a script deleted by mistake can be put back.
         try? FileManager.default.trashItem(at: url, resultingItemURL: nil)
@@ -111,13 +119,13 @@ public final class ScriptStore {
         if selection == id { selection = documents[safe: min(index, documents.count - 1)]?.id }
     }
 
-    /// Writes every pending change now, before quitting.
+    /// Writes every change not yet on disk, before prompting or quitting.
     public func flush() {
-        for (id, task) in pendingSaves {
-            task.cancel()
-            if let document = document(id) { write(document) }
-        }
+        pendingSaves.values.forEach { $0.cancel() }
         pendingSaves.removeAll()
+        for id in unsaved {
+            if let document = document(id) { save(document) }
+        }
     }
 
     public func revealInFinder() {
@@ -126,8 +134,22 @@ public final class ScriptStore {
 
     private func fileURL(_ id: String) -> URL { folder.appendingPathComponent(id).appendingPathExtension("md") }
 
-    private func write(_ document: ScriptDocument) {
-        try? document.text.write(to: fileURL(document.id), atomically: true, encoding: .utf8)
+    /// Writes a script, and says so once if the disk refuses: the text stays in the window and is written again at
+    /// the next change.
+    private func save(_ document: ScriptDocument) {
+        do {
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            try document.text.write(to: fileURL(document.id), atomically: true, encoding: .utf8)
+            unsaved.remove(document.id)
+        } catch {
+            unsaved.insert(document.id)
+            guard !warnedAboutSaving else { return }
+            warnedAboutSaving = true
+            let alert = NSAlert()
+            alert.messageText = String(localized: "Souffleur can't save “\(document.title)”.", bundle: .module)
+            alert.informativeText = String(localized: "\(error.localizedDescription) Your text stays in the window, and Souffleur tries again at your next change.", bundle: .module)
+            alert.runModal()
+        }
     }
 
     static let welcomeScript = """

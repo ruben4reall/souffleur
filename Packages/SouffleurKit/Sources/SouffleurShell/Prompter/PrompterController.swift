@@ -104,7 +104,7 @@ public final class PrompterController {
         if animated {
             closing?.dismiss {}
         } else {
-            closing?.dismiss {}
+            closing?.closeNow()
         }
         onChange?()
     }
@@ -128,6 +128,8 @@ public final class PrompterController {
 
     private func beginAfterCountdown() {
         countdown?.cancel()
+        // The recogniser gets ready during the countdown, so the first words are heard.
+        if state.mode.listens, !(state.mode == .voice && demoVoice) { startListening(recognize: state.mode == .voice) }
         guard Preferences.countdown else { return begin() }
         presentation?.glow(0.9)
         countdown = Task { [weak self] in
@@ -149,8 +151,8 @@ public final class PrompterController {
         recorder = TakeRecorder(totalWords: script.words.count, start: Date())
         startClock()
         switch state.mode {
-        case .voice: if demoVoice { readDemo() } else { startListening(recognize: true) }
-        case .pace: startListening(recognize: false)
+        case .voice: if demoVoice { readDemo() } else if !isListening { startListening(recognize: true) }
+        case .pace: if !isListening { startListening(recognize: false) }
         case .auto: presentation?.text.setSpeed(autoSpeed, eased: true)
         case .manual: break
         }
@@ -329,7 +331,13 @@ public final class PrompterController {
         text.onOffsetChanged = { [weak self] offset in self?.offsetChanged(offset, force: false) }
         text.onSettled = { [weak self] in
             guard let self, self.state.mode == .auto || self.state.mode == .pace, self.state.phase == .rolling else { return }
-            self.finish()
+            // The last line has just reached the reading line: give the reader the time to say it.
+            let words = max(4.0, self.presentation?.text.wordsPerLine ?? 8)
+            let wait = min(6, max(1.5, words / max(self.state.wordsPerMinute, 60) * 60))
+            Task { [weak self] in
+                try? await Task.sleep(for: .seconds(wait))
+                if self?.state.phase == .rolling { self?.finish() }
+            }
         }
     }
 
@@ -454,11 +462,14 @@ public final class PrompterController {
         case .status(let status):
             state.status = status
         case .failed(let failure):
-            switch failure {
-            case .languageUnsupported:
+            if failure.fallsBackToPace {
+                // The microphone keeps listening for the level: only the words are gone.
+                listener.dropRecognition()
+                tracker = nil
+                state.mode = .pace
                 flash(failure.message)
-                switchMode(.pace)
-            default:
+                onChange?()
+            } else {
                 state.failure = failure
                 stopListening()
             }

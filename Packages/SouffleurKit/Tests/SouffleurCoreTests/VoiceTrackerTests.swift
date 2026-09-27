@@ -100,6 +100,15 @@ struct VoiceTrackerTests {
         #expect(tracker.wordIndex == 0)
     }
 
+    @Test func anAsideEndingOnAWordAheadDoesNotJump() {
+        var tracker = tracker("Today I want to share three ideas with you")
+        tracker.hear("today i want to")
+        #expect(tracker.wordIndex == 4)
+        // "tell you" is said off script; "you" is in the script, five words on, but none of the words in between was said.
+        tracker.hear("today i want to tell you")
+        #expect(tracker.wordIndex == 4)
+    }
+
     @Test func aRevisedPartialResultNeverMovesBackwards() {
         var tracker = tracker("Hello and welcome to the show")
         tracker.hear("hello and welcome")

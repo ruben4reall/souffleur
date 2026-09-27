@@ -58,6 +58,8 @@ protocol PrompterPresentation: AnyObject {
     func present()
     /// Closes with its motion, then removes the window.
     func dismiss(completion: @escaping @MainActor () -> Void)
+    /// Removes the window at once, when another take replaces this one.
+    func closeNow()
     /// Re-reads the settings that change the window (size, capture, screen).
     func refresh()
     /// The stage light around the prompter, from 0 (off) to 1.

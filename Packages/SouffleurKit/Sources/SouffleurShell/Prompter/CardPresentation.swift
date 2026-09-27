@@ -39,7 +39,8 @@ final class CardPresentation: PrompterPresentation {
         } else {
             let size = Preferences.floatingSize
             var frame = panel.frame
-            if frame.width < 10, let screen = Screens.notch {
+            let visible = NSScreen.screens.contains { $0.visibleFrame.intersects(frame.insetBy(dx: 40, dy: 40)) }
+            if frame.width < 10 || !visible, let screen = Screens.notch {
                 // First time: centred just under the menu bar, as close to the camera as a window can be.
                 frame = NSRect(x: screen.frame.midX - size.width / 2, y: screen.visibleFrame.maxY - size.height - 8, width: size.width, height: size.height)
             } else {
@@ -140,6 +141,12 @@ final class CardPresentation: PrompterPresentation {
     func glow(_ intensity: CGFloat) {
         guard !fullScreen else { return }
         glowView.setIntensity(intensity * 0.8)
+    }
+
+    func closeNow() {
+        state.isHovering = false
+        panel.orderOut(nil)
+        text.halt()
     }
 
     func dismiss(completion: @escaping @MainActor () -> Void) {

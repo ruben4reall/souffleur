@@ -131,6 +131,14 @@ final class NotchPresentation: PrompterPresentation {
         glow.setIntensity(intensity)
     }
 
+    func closeNow() {
+        isOpen = false
+        state.isHovering = false
+        glow.setIntensity(0, duration: 0)
+        panel.orderOut(nil)
+        text.halt()
+    }
+
     func dismiss(completion: @escaping @MainActor () -> Void) {
         isOpen = false
         state.isHovering = false
