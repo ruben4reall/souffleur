@@ -10,6 +10,14 @@ struct PaceTests {
         #expect(Pace.readingTime(words: 10, wordsPerMinute: 0) == 0)
     }
 
+    @Test func rollingCoversTheWholeScriptInItsReadingTime() {
+        // 160 words at 150 a minute: 64 s, the last line's 10 words read once it reaches the camera, so the other 150
+        // take the 600 points of scrolling in 60 s, paragraph spacing and all.
+        #expect(Pace.pointsPerSecond(toScroll: 600, words: 160, wordsOnLastLine: 10, wordsPerMinute: 150) == 10)
+        #expect(Pace.pointsPerSecond(toScroll: 600, words: 0, wordsOnLastLine: 0, wordsPerMinute: 150) == 0)
+        #expect(Pace.pointsPerSecond(toScroll: 0, words: 50, wordsOnLastLine: 5, wordsPerMinute: 150) == 0)
+    }
+
     @Test func aScriptFitsAChosenDuration() {
         // 150 words in one minute: 150 words a minute; 120 in 45 seconds: 160.
         #expect(Pace.wordsPerMinute(toRead: 150, in: 60) == 150)

@@ -23,6 +23,9 @@ public final class Souffleur {
     @ObservationIgnored private var hotKeys: HotKeys?
     @ObservationIgnored private var mainKeys: [UInt32] = []
     @ObservationIgnored private var clickerKeys: [UInt32] = []
+    /// The scroll mode last chosen in the window or in Settings: choosing another applies to the take on screen at
+    /// once. A take that falls back on its own (no voice model) keeps its fallback until the next choice.
+    @ObservationIgnored private var chosenMode = Preferences.mode
     @ObservationIgnored private var defaultsObserver: NSObjectProtocol?
     /// Set by the first SwiftUI scene, to open windows from outside SwiftUI.
     @ObservationIgnored public var openWindow: ((String) -> Void)?
@@ -199,6 +202,10 @@ public final class Souffleur {
         }
         updateClickerKeys()
         prompter.paceChanged()
+        if Preferences.mode != chosenMode {
+            chosenMode = Preferences.mode
+            if prompter.isActive { prompter.switchMode(chosenMode) }
+        }
         if Preferences.remoteEnabled, !remote.isRunning { remote.start() }
         if !Preferences.remoteEnabled, remote.isRunning { remote.stop() }
         let policy: NSApplication.ActivationPolicy = Preferences.showsDockIcon ? .regular : .accessory

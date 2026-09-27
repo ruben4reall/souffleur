@@ -150,3 +150,22 @@ struct VoiceTrackerTests {
         #expect(tracker.isFinished)
     }
 }
+
+struct RecognitionLocalesTests {
+    private func ids(_ locales: [Locale]) -> [String] {
+        locales.map { [$0.language.languageCode?.identifier, $0.region?.identifier].compactMap { $0 }.joined(separator: "_") }
+    }
+
+    @Test func triesTheReadersRegionThenTheLanguagesUsualOne() {
+        let supported = [Locale(identifier: "en-GB"), Locale(identifier: "en-US"), Locale(identifier: "en-AU"), Locale(identifier: "fr-FR")]
+        // An English script on a Mac set to Switzerland: no Swiss English model, so American before the others.
+        let candidates = RecognitionLocales.candidates(for: Locale(identifier: "en"), supported: supported, current: Locale(identifier: "en_CH"))
+        #expect(ids(candidates) == ["en", "en_US", "en_AU", "en_GB"])
+    }
+
+    @Test func keepsTheRegionAskedForFirst() {
+        let supported = [Locale(identifier: "fr-FR"), Locale(identifier: "fr-CH"), Locale(identifier: "fr-CA")]
+        let candidates = RecognitionLocales.candidates(for: Locale(identifier: "fr_CH"), supported: supported, current: Locale(identifier: "fr_CH"))
+        #expect(ids(candidates) == ["fr_CH", "fr_FR", "fr_CA"])
+    }
+}

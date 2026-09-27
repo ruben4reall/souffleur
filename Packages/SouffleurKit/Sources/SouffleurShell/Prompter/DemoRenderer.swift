@@ -8,7 +8,7 @@ public enum DemoRenderer {
     /// Writes the script as the notch prompter draws it: its font, spacing, alignment and colours, `width` points
     /// wide, at twice the resolution.
     public static func renderStrip(of text: String, width: CGFloat, to url: URL) throws {
-        let style = PrompterStyle.current()
+        let style = PrompterStyle.current(notch: true)
         let script = Script(text)
         let attributed = ScriptTextView.attributed(script, style: style)
         let storage = NSTextStorage(attributedString: attributed)

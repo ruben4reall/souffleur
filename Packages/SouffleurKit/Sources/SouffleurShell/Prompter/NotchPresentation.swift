@@ -52,7 +52,7 @@ final class NotchPresentation: PrompterPresentation {
             rightAreaWidth: screen.auxiliaryTopRightArea?.width,
             menuBarHeight: screen.frame.maxY - screen.visibleFrame.maxY
         )
-        let style = PrompterStyle.current()
+        let style = PrompterStyle.current(notch: true)
         // Exactly the lines chosen, seen through a long fade at each edge: the line being read is the one lit in
         // full, a little above the middle; the one just read fades out upwards, the next ones into the lower edge.
         let textHeight = (style.lineHeight * CGFloat(Preferences.notchLines)).rounded()
@@ -106,7 +106,8 @@ final class NotchPresentation: PrompterPresentation {
             guard let overlay else { return [] }
             if state.failure != nil || state.summary != nil { return [overlay.bounds] }
             guard state.isHovering else { return [] }
-            return [NSRect(x: overlay.bounds.midX - 90, y: 0, width: 180, height: 48)]
+            // The hosting view is flipped: the controls sit along its bottom edge, at the largest y.
+            return [NSRect(x: overlay.bounds.midX - 90, y: overlay.bounds.maxY - 48, width: 180, height: 48)]
         }
         content.addSubview(overlay)
         self.overlay = overlay

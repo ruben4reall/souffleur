@@ -14,9 +14,12 @@ public final class RemoteServer {
     public var onStatusChange: (() -> Void)?
 
     private var listener: NWListener?
-    private var subscribers: [ObjectIdentifier: NWConnection] = [:]
+    private var subscribers: [UInt64: NWConnection] = [:]
     /// Connections still sending their request, with when they arrived: a slow or silent one is dropped.
-    private var waiting: [ObjectIdentifier: NWConnection] = [:]
+    private var waiting: [UInt64: NWConnection] = [:]
+    /// Connections are known by a number that is never used twice: the address of a connection that has gone can come
+    /// back with a new one, and a late timer must not close the newcomer.
+    private var lastConnection: UInt64 = 0
     private var heartbeat: Timer?
     private var lastSent: RemoteState?
     /// A phone or two, and the page loading: more than this at once is not a remote.
@@ -105,7 +108,7 @@ public final class RemoteServer {
         }
     }
 
-    private func drop(_ id: ObjectIdentifier) {
+    private func drop(_ id: UInt64) {
         subscribers.removeValue(forKey: id)?.cancel()
         if subscribers.isEmpty {
             heartbeat?.invalidate()
@@ -126,10 +129,11 @@ public final class RemoteServer {
             connection.cancel()
             return
         }
-        let id = ObjectIdentifier(connection)
+        lastConnection += 1
+        let id = lastConnection
         waiting[id] = connection
         connection.start(queue: queue)
-        receive(connection, buffer: Data())
+        receive(connection, id: id, buffer: Data())
         // A request has a few seconds to arrive whole.
         DispatchQueue.main.asyncAfter(deadline: .now() + Self.requestTimeout) { [weak self] in
             MainActor.assumeIsolated {
@@ -138,22 +142,22 @@ public final class RemoteServer {
         }
     }
 
-    private nonisolated func receive(_ connection: NWConnection, buffer: Data) {
+    private nonisolated func receive(_ connection: NWConnection, id: UInt64, buffer: Data) {
         connection.receive(minimumIncompleteLength: 1, maximumLength: 16 * 1024) { [weak self] data, _, complete, error in
             var buffer = buffer
             if let data { buffer.append(data) }
             if let request = HTTPRequest(buffer) {
-                Task { @MainActor in self?.respond(to: request, on: connection) }
+                Task { @MainActor in self?.respond(to: request, on: connection, id: id) }
             } else if complete || error != nil || buffer.count > 32 * 1024 {
                 connection.cancel()
             } else {
-                self?.receive(connection, buffer: buffer)
+                self?.receive(connection, id: id, buffer: buffer)
             }
         }
     }
 
-    private func respond(to request: HTTPRequest, on connection: NWConnection) {
-        guard waiting.removeValue(forKey: ObjectIdentifier(connection)) != nil else { return }
+    private func respond(to request: HTTPRequest, on connection: NWConnection, id: UInt64) {
+        guard waiting.removeValue(forKey: id) != nil else { return }
         guard RemoteToken.matches(Preferences.remoteToken, request.query["token"] ?? "") else {
             return send(connection, status: "403 Forbidden", type: "text/plain", body: Data("Scan the QR code in Souffleur's settings again.".utf8))
         }
@@ -173,9 +177,8 @@ public final class RemoteServer {
         case "/events":
             let head = "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nCache-Control: no-store\r\nConnection: keep-alive\r\nX-Content-Type-Options: nosniff\r\n\r\n"
             connection.send(content: Data(head.utf8), completion: .contentProcessed { _ in })
-            let id = ObjectIdentifier(connection)
             // The oldest page goes when a new one opens past the limit: a phone reloading replaces itself.
-            if subscribers.count >= Self.maximumSubscribers, let oldest = subscribers.keys.first { drop(oldest) }
+            if subscribers.count >= Self.maximumSubscribers, let oldest = subscribers.keys.min() { drop(oldest) }
             subscribers[id] = connection
             connection.stateUpdateHandler = { [weak self] update in
                 switch update {
