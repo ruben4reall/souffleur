@@ -11,6 +11,21 @@ public enum Pace {
         return Double(words) / wordsPerMinute * 60
     }
 
+    /// The pace that reads `words` in exactly `seconds`.
+    public static func wordsPerMinute(toRead words: Int, in seconds: TimeInterval) -> Double {
+        guard words > 0, seconds > 0 else { return 0 }
+        return Double(words) / seconds * 60
+    }
+
+    /// Lengths a video or a talk is often cut to, in seconds.
+    static let usualDurations: [TimeInterval] = [15, 30, 45, 60, 90, 120, 180, 300, 600, 900, 1200]
+
+    /// The usual durations a script can be read in at a speed within `range`, shortest first.
+    public static func fittingDurations(words: Int, range: ClosedRange<Double>) -> [TimeInterval] {
+        guard words > 0 else { return [] }
+        return usualDurations.filter { range.contains(wordsPerMinute(toRead: words, in: $0)) }
+    }
+
     /// "1:05", or "1:02:05" past an hour.
     public static func clock(_ seconds: TimeInterval) -> String {
         let total = max(0, Int(seconds.rounded()))

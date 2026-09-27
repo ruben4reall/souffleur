@@ -215,6 +215,13 @@ struct SummaryCard: View {
             HStack(spacing: 8) {
                 Button("Again") { state.actions.restart() }
                     .buttonStyle(PillButtonStyle(primary: true))
+                // After a take read at another pace than the speed set: roll at the reader's own pace next time.
+                if let pace = summary.suggestedPace(range: Preferences.minimumPace...Preferences.maximumPace),
+                   abs(pace - state.wordsPerMinute) >= 5 {
+                    Button("Use \(Int(pace)) wpm") { state.actions.usePace(pace) }
+                        .buttonStyle(PillButtonStyle(primary: false))
+                        .help(String(localized: "Roll the script at the pace you just read at.", bundle: .module))
+                }
                 Button("Close") { state.actions.close() }
                     .buttonStyle(PillButtonStyle(primary: false))
             }

@@ -44,7 +44,8 @@ public final class PrompterController {
             restart: { [weak self] in self?.restart() },
             close: { [weak self] in self?.stop() },
             openSettings: { NSWorkspace.shared.open($0) },
-            useAutoScroll: { [weak self] in self?.switchMode(.auto) }
+            useAutoScroll: { [weak self] in self?.switchMode(.auto) },
+            usePace: { [weak self] in self?.usePace($0) }
         )
         observers.append(NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.screensChanged() }
@@ -246,6 +247,14 @@ public final class PrompterController {
         guard Preferences.wordsPerMinute != state.wordsPerMinute else { return }
         state.wordsPerMinute = Preferences.wordsPerMinute
         if state.phase == .rolling, state.mode == .auto { presentation?.text.setSpeed(autoSpeed, eased: true) }
+        onChange?()
+    }
+
+    /// Rolls the script at the pace the reader just read at, from now on.
+    private func usePace(_ pace: Double) {
+        Preferences.wordsPerMinute = pace
+        state.wordsPerMinute = Preferences.wordsPerMinute
+        flash(String(localized: "Speed set to \(Int(state.wordsPerMinute)) words a minute", bundle: .module))
         onChange?()
     }
 

@@ -86,6 +86,9 @@ struct SpeedPanel: View {
                      : manual
                      ? String(localized: "Moves only when you move it · \(words) words", bundle: .module)
                      : String(localized: "\(Int(pace.rounded())) words a minute · \(words) words · \(Pace.clock(Pace.readingTime(words: words, wordsPerMinute: pace)))", bundle: .module))
+                if !voice && !manual {
+                    FitMenu(words: words, pace: $pace)
+                }
                 Spacer()
                 if !lastSummary.isEmpty {
                     Label {
@@ -102,5 +105,31 @@ struct SpeedPanel: View {
         .padding(.vertical, 14)
         .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.card))
         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.primary.opacity(0.07)))
+    }
+}
+
+/// Sets the speed so the script lasts exactly a usual length: 30 seconds for a short, a minute, two for a pitch.
+struct FitMenu: View {
+    let words: Int
+    @Binding var pace: Double
+
+    var body: some View {
+        let durations = Pace.fittingDurations(words: words, range: Preferences.minimumPace...Preferences.maximumPace)
+        if !durations.isEmpty {
+            Menu {
+                ForEach(durations, id: \.self) { seconds in
+                    Button(Self.label(seconds)) { pace = Pace.wordsPerMinute(toRead: words, in: seconds) }
+                }
+            } label: {
+                Label(String(localized: "Fit in", bundle: .module), systemImage: "timer")
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .help(String(localized: "Sets the speed so the script lasts exactly this long.", bundle: .module))
+        }
+    }
+
+    static func label(_ seconds: TimeInterval) -> String {
+        Duration.seconds(seconds).formatted(.units(allowed: [.minutes, .seconds], width: .wide))
     }
 }

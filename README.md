@@ -47,7 +47,9 @@ a phone remote, clicker support, a full screen mirror for rigs and a coach after
 - **Scripts.** A library of plain Markdown files, light markup (`# headings`, `[cues]`, `**emphasis**`), and import from
   text, Markdown, RTF, Word, PDF and PowerPoint speaker notes.
 - **Coach.** Your pace live beside the camera, and after each take your time, pace and how much of the script you
-  covered.
+  covered, with one click to roll at your own pace next time.
+- **Fit in.** One click sets the speed so the script lasts exactly 30 seconds, a minute or two: made for shorts and
+  pitches.
 - **Yours to shape.** Font, size, spacing, the colour of the light, width, lines, countdown, mirror, the language to
   listen in.
 

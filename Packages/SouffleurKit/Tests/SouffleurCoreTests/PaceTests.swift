@@ -10,6 +10,20 @@ struct PaceTests {
         #expect(Pace.readingTime(words: 10, wordsPerMinute: 0) == 0)
     }
 
+    @Test func aScriptFitsAChosenDuration() {
+        // 150 words in one minute: 150 words a minute; 120 in 45 seconds: 160.
+        #expect(Pace.wordsPerMinute(toRead: 150, in: 60) == 150)
+        #expect(Pace.wordsPerMinute(toRead: 120, in: 45) == 160)
+        #expect(Pace.wordsPerMinute(toRead: 0, in: 60) == 0)
+        #expect(Pace.wordsPerMinute(toRead: 10, in: 0) == 0)
+    }
+
+    @Test func offersOnlyTheDurationsTheSpeedsCanReach() {
+        // 120 words, between 60 and 260 words a minute: from about 28 seconds to two minutes.
+        #expect(Pace.fittingDurations(words: 120, range: 60...260) == [30, 45, 60, 90, 120])
+        #expect(Pace.fittingDurations(words: 0, range: 60...260).isEmpty)
+    }
+
     @Test func clockShowsMinutesAndSeconds() {
         #expect(Pace.clock(0) == "0:00")
         #expect(Pace.clock(65) == "1:05")
@@ -62,6 +76,15 @@ struct TakeSummaryTests {
         #expect(summary.coverage == 0.75)
         #expect(summary.longestPause == 28)
         #expect(summary.fillers == 2)
+    }
+
+    @Test func suggestsTheReadersOwnPaceAfterAFullTake() {
+        let take = TakeSummary(duration: 60, wordsRead: 146, totalWords: 200, longestPause: 2, fillers: 0)
+        #expect(take.suggestedPace(range: 60...260) == 145)
+        // Too short a take to trust.
+        #expect(TakeSummary(duration: 8, wordsRead: 20, totalWords: 200, longestPause: 0, fillers: 0).suggestedPace(range: 60...260) == nil)
+        // Within the speeds the slider offers.
+        #expect(TakeSummary(duration: 60, wordsRead: 300, totalWords: 400, longestPause: 0, fillers: 0).suggestedPace(range: 60...260) == 260)
     }
 
     @Test func anEmptyTakeHasNoPace() {
