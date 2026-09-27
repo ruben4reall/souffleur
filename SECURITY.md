@@ -37,7 +37,9 @@ vocabulary, on the Mac.
   profile is off. You can turn automatic checks off in Settings, General.
 - The phone remote, only while you turn it on: a small HTTP server on port 7575 (or the next free one up to 7579). It
   accepts connections from loopback, link-local and private addresses only, and answers nothing without the 12
-  character pairing code in the address, compared in constant time. Settings can make a new code at any time.
+  character pairing code in the address, compared in constant time. A request has five seconds to arrive, at most
+  sixteen connections are open at once, and four pages at most follow the prompter. Settings can make a new code at
+  any time.
 - Nothing else. No account, no telemetry, no analytics, no crash reports.
 
 ### Permissions
