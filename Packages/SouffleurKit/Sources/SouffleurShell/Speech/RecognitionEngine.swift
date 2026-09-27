@@ -8,12 +8,19 @@ class RecognitionEngine: @unchecked Sendable {
     func append(_ buffer: AVAudioPCMBuffer) {}
     func stop() {}
 
+    /// SpeechAnalyzer when its model for the language is already on the Mac; otherwise SFSpeechRecognizer, which is
+    /// ready at once. A take never waits for a download.
     static func make(locale: Locale, vocabulary: [String], report: @escaping @Sendable (ListenerEvent) -> Void) async throws -> RecognitionEngine {
         if #available(macOS 26, *), SpeechTranscriber.isAvailable,
-           let supported = await SpeechTranscriber.supportedLocale(equivalentTo: locale) {
+           let supported = await SpeechTranscriber.supportedLocale(equivalentTo: locale),
+           await AssetInventory.status(forModules: [AnalyzerEngine.transcriber(for: supported)]) == .installed {
             let engine = AnalyzerEngine()
-            try await engine.start(locale: supported, vocabulary: vocabulary, report: report)
-            return engine
+            do {
+                try await engine.start(locale: supported, vocabulary: vocabulary, report: report)
+                return engine
+            } catch {
+                engine.stop()
+            }
         }
         guard let engine = LegacyEngine(locale: locale, vocabulary: vocabulary, report: report) else {
             throw ListenerFailure.languageUnsupported(locale.identifier)
@@ -37,8 +44,12 @@ final class AnalyzerEngine: RecognitionEngine, @unchecked Sendable {
     private var results: Task<Void, Never>?
     private let lock = NSLock()
 
+    static func transcriber(for locale: Locale) -> SpeechTranscriber {
+        SpeechTranscriber(locale: locale, transcriptionOptions: [], reportingOptions: [.volatileResults, .fastResults], attributeOptions: [])
+    }
+
     func start(locale: Locale, vocabulary: [String], report: @escaping @Sendable (ListenerEvent) -> Void) async throws {
-        let transcriber = SpeechTranscriber(locale: locale, transcriptionOptions: [], reportingOptions: [.volatileResults, .fastResults], attributeOptions: [])
+        let transcriber = Self.transcriber(for: locale)
         if let request = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
             report(.status(String(localized: "Preparing the voice model…", bundle: .module)))
             try await request.downloadAndInstall()
