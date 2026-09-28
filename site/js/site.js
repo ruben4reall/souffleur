@@ -1,4 +1,4 @@
-// Souffleur's website: the filmed take, the spotlight, the stage light chips and the page counter. Everything still
+// Souffleur's website: the filmed take, the lamp, the stage light chips and the page counter. Everything still
 // reads without it.
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -27,15 +27,10 @@ function whileVisible(element, interval, step) {
 })();
 
 (() => {
-  // The spotlight follows the pointer over the title; without a pointer it roams on its own (CSS).
-  const title = document.querySelector('[data-spotlight]');
-  if (!title) return;
-  const lit = title.querySelector('.spotlight-lit');
-  title.closest('section').addEventListener('pointermove', (event) => {
-    const box = title.getBoundingClientRect();
-    lit.style.setProperty('--mouse-x', `${((event.clientX - box.left) / box.width) * 100}%`);
-    lit.style.setProperty('--mouse-y', `${((event.clientY - box.top) / box.height) * 100}%`);
-  });
+  // The lamp over "Invisible when you record" rests while it is off screen.
+  const lamp = document.querySelector('[data-lamp]');
+  if (!lamp) return;
+  new IntersectionObserver(([entry]) => lamp.classList.toggle('is-idle', !entry.isIntersecting)).observe(lamp);
 })();
 
 (() => {
