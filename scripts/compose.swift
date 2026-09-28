@@ -1,6 +1,6 @@
 // scripts/compose.swift <desktop.png> <panel.png> <out.png> [cropHeight] [hang]: lays a capture of the notch prompter
 // on the top of a real desktop, centred where the notch is, `hang` pixels below the top edge (0: it grows out of the
-// notch), with the MacBook's notch in front of it, for previews, the README and the website.
+// notch), with the MacBook's notch in front of it: a quick preview of a capture where it will be seen.
 import AppKit
 
 let args = CommandLine.arguments

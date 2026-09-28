@@ -25,7 +25,7 @@ contact on every call, video and talk. It does what the paid notch prompters do,
 a phone remote, clicker support, a full screen mirror for rigs and a coach after every take.
 
 <p align="center">
-  <img src="docs/images/in-action.webp" alt="A take filmed: Souffleur's prompter grows out of the notch of a MacBook, counts down from three, then follows a voice word by word, the words said dimming and the next one lit in violet" width="800">
+  <img src="docs/images/in-action.webp" alt="Souffleur's demo take, filmed: the prompter grows out of the notch of a MacBook, counts down from three, then follows the script word by word in Voice Follow, the words read dimming and the next one lit in violet" width="800">
 </p>
 
 ## What it does
@@ -65,7 +65,8 @@ a phone remote, clicker support, a full screen mirror for rigs and a coach after
 1. [Download Souffleur](https://github.com/ruben4reall/souffleur/releases/latest/download/Souffleur.dmg), open the disk
    image and drag Souffleur to Applications.
 2. Open it. A short welcome shows what it does. Souffleur asks for the microphone when you first press play, to hear
-   when you speak; choose Auto Scroll and it never does.
+   when you speak, and for speech recognition the first time you use Voice Follow; choose Auto Scroll and it never
+   does.
 
 Releases are signed with a Developer ID and notarized by Apple.
 
