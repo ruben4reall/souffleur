@@ -3,6 +3,28 @@
     <channel>
         <title>Souffleur</title>
         <item>
+            <title>1.3.0</title>
+            <pubDate>Mon, 28 Sep 2026 05:12:09 +0200</pubDate>
+            <link>https://getsouffleur.vercel.app</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/ruben4reall/souffleur/releases</sparkle:fullReleaseNotesLink>
+            <sparkle:version>1.3.0</sparkle:version>
+            <sparkle:shortVersionString>1.3.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[The prompter grows out of the notch again, as the classic notch prompters do: its ears meet the top edge of the
+screen and the camera sits in its black, with the time on one side and your voice on the other.
+
+- **In the notch**: the prompter drops from the top of the screen around the camera housing instead of hanging below
+  it, so it is one with the notch on any wallpaper, and the text starts right under the camera.
+- **Beside the camera**: the time on its left, the voice and the pace on its right, where the band at the top used to
+  be. A long take keeps the essentials when they no longer fit.
+- **400 points wide** by default, like the classic notch prompter; the width setting now starts at 380.
+- **Without a notch**, the prompter drops from the top edge too, over the middle of the menu bar.
+- **Other notch apps**: while you read, the prompter is in front of what they show around the camera, and they come
+  back the moment it closes. The two notifications Souffleur posts are unchanged.
+]]></description>
+            <enclosure url="https://github.com/ruben4reall/souffleur/releases/download/v1.3.0/Souffleur-1.3.0.dmg" length="3288747" type="application/octet-stream" sparkle:edSignature="ZY1NbJ8/W8ABxK8x+KnJbo5Q/h3Pb4G3v7j270jTRRlYBa8V8ekcwALiPuDRNGmBL1V3XLfEWcqWYwBKXIefAg=="/>
+        </item>
+        <item>
             <title>1.2.0</title>
             <pubDate>Sun, 27 Sep 2026 23:47:15 +0200</pubDate>
             <link>https://getsouffleur.vercel.app</link>
@@ -69,33 +91,6 @@ Fixed, after a full review of every feature:
 - **Phone remote**: requests time out, and the number of connections is capped.
 ]]></description>
             <enclosure url="https://github.com/ruben4reall/souffleur/releases/download/v1.1.0/Souffleur-1.1.0.dmg" length="3251500" type="application/octet-stream" sparkle:edSignature="zaUIqw83CY2M6QyfUO1RT4ZJlo08XuidhmhenjbqkDMbtCcMPxxiBI1n0+4PdPBRye12b5AsW6Fj9wou+oUVCQ=="/>
-        </item>
-        <item>
-            <title>1.0.0</title>
-            <pubDate>Sun, 27 Sep 2026 21:04:09 +0200</pubDate>
-            <link>https://getsouffleur.vercel.app</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/ruben4reall/souffleur/releases</sparkle:fullReleaseNotesLink>
-            <sparkle:version>1.0.0</sparkle:version>
-            <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[The first release of Souffleur: a teleprompter that lives in the MacBook notch, free and open source under the MIT
-License.
-
-- **Voice follow**: speech recognised on the Mac and lined up with the script, word by word. The words said dim, the
-  next one lights up, and the line being read stays under the camera. It waits when you pause, finds you again when
-  you skip, and understands numbers, contractions and accents.
-- **Four ways to scroll**: Voice Follow, Voice Pace, Auto Scroll and Manual.
-- **Three places**: the notch, compact and ringed with a violet light that follows your voice; a floating glass card;
-  full screen on any display, mirrored for a teleprompter rig.
-- **Control**: global shortcuts, presentation clickers and foot pedals, a phone remote over the local network,
-  `souffleur://` links and Shortcuts actions.
-- **Scripts**: a library of Markdown files with light markup, and import from text, RTF, Word, PDF and PowerPoint
-  speaker notes.
-- **Coach**: live pace beside the camera and a summary after every take.
-- **Privacy**: no account, no analytics, the voice never leaves the Mac.
-- **Updates**: Sparkle, EdDSA-signed and notarized by Apple.
-]]></description>
-            <enclosure url="https://github.com/ruben4reall/souffleur/releases/download/v1.0.0/Souffleur-1.0.0.dmg" length="3205640" type="application/octet-stream" sparkle:edSignature="pTuJDSG5eydFKGMwMqoD8Y7V5LznVYbV+orCTGdyF2JnuKbmS53D+ueIVD1q4NXXeKUv2GuOHvGs2q6KRMUvBQ=="/>
         </item>
     </channel>
 </rss>
