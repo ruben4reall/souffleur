@@ -2,6 +2,11 @@
 
 Each release's section is what Souffleur's update window and the GitHub release show. Dates are in ISO format.
 
+## Unreleased
+
+- **Phone remote**: before a take, the phone says that its play button starts the selected script, and shows no time
+  or percentage until one is open; the page no longer asks for an icon the Mac refuses.
+
 ## 1.3.0 (2026-09-28)
 
 The prompter grows out of the notch again, as the classic notch prompters do: its ears meet the top edge of the

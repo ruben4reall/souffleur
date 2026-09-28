@@ -8,6 +8,7 @@ enum RemotePage {
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
     <meta name="theme-color" content="#08080a">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="icon" href="data:,">
     <title>Souffleur Remote</title>
     <style>
     :root { --accent: #9d84ff; --fuchsia: #ff5ac8; --ink: #f7f7fa; --dim: rgba(235,235,245,.55); --faint: rgba(235,235,245,.28); --well: rgba(255,255,255,.08); }
@@ -45,7 +46,7 @@ enum RemotePage {
         <div class="brand"><span class="dot" id="dot"></span>Souffleur</div>
         <div class="title" id="title"></div>
       </header>
-      <div class="line empty" id="line">Open a script in Souffleur, then press Prompt.</div>
+      <div class="line empty" id="line">Connecting to your Mac…</div>
       <div>
         <div class="meta"><span id="left">0%</span><span id="pace"></span><span id="remaining"></span></div>
         <div class="bar"><i id="progress"></i></div>
@@ -67,13 +68,14 @@ enum RemotePage {
     const pause = '<path d="M7 5h4v14H7zm6 0h4v14h-4z"/>', play = '<path d="M8 5v14l11-7z"/>';
     function render(s) {
       $("title").textContent = s.title || "";
-      const line = $("line");
-      line.textContent = s.line || "Open a script in Souffleur, then press Prompt.";
-      line.classList.toggle("empty", !s.line);
-      $("progress").style.width = (s.progress * 100).toFixed(1) + "%";
-      $("left").textContent = Math.round(s.progress * 100) + "%";
-      $("pace").textContent = s.wordsPerMinute ? Math.round(s.wordsPerMinute) + " wpm" : "";
-      $("remaining").textContent = s.title ? "−" + clock(s.remaining) : "";
+      // Nothing open on the Mac: the play button below opens the selected script.
+      const idle = !s.isActive, line = $("line");
+      line.textContent = idle ? (s.title ? "Press play to start." : "Choose a script in Souffleur.") : s.line;
+      line.classList.toggle("empty", idle || !s.line);
+      $("progress").style.width = (idle ? 0 : s.progress * 100).toFixed(1) + "%";
+      $("left").textContent = idle ? "" : Math.round(s.progress * 100) + "%";
+      $("pace").textContent = !idle && s.wordsPerMinute ? Math.round(s.wordsPerMinute) + " wpm" : "";
+      $("remaining").textContent = idle ? "" : "−" + clock(s.remaining);
       $("playIcon").innerHTML = s.isRolling ? pause : play;
       $("dot").classList.toggle("live", s.isRolling);
     }

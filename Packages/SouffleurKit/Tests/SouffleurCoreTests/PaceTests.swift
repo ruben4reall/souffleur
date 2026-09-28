@@ -207,6 +207,15 @@ struct RemoteProtocolTests {
         #expect(try JSONDecoder().decode(RemoteState.self, from: Data(json.utf8)) == state)
     }
 
+    @Test func anIdleStateTellsThePhoneNothingIsOpen() throws {
+        let idle = RemoteState.idle(title: "Keynote")
+        #expect(!idle.isActive && !idle.isRolling && idle.line.isEmpty && idle.title == "Keynote")
+        let json = try #require(String(data: JSONEncoder().encode(idle), encoding: .utf8))
+        #expect(json.contains("\"isActive\":false"))
+        // An open take is active even while the line under the camera is blank.
+        #expect(RemoteState(title: "Keynote", isRolling: false, progress: 0, wordsPerMinute: 140, line: "", remaining: 30).isActive)
+    }
+
     @Test func tokensAreLongAndUnguessable() {
         let token = RemoteToken.make()
         #expect(token.count == 12)
