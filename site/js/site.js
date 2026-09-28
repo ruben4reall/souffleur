@@ -1,4 +1,4 @@
-// Souffleur's website: the filmed take, the lamp, the stage light chips and the page counter. Everything still
+// Souffleur's website: the bar's hairline, the filmed take, the lamp, the stage light chips and the page counter. Everything still
 // reads without it.
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -14,6 +14,15 @@ function whileVisible(element, interval, step) {
   document.addEventListener('visibilitychange', () => (document.hidden ? halt() : run()));
   return () => { cancelled = true; halt(); };
 }
+
+(() => {
+  // The bar's hairline appears once the page moves: at the top, the prompter hangs from the bar with nothing between.
+  const nav = document.querySelector('.nav');
+  if (!nav) return;
+  const mark = () => nav.classList.toggle('is-scrolled', scrollY > 4);
+  addEventListener('scroll', mark, { passive: true });
+  mark();
+})();
 
 (() => {
   // The filmed take plays while it is on screen; with reduced motion it stays on its poster, with controls.

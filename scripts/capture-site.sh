@@ -25,8 +25,9 @@ shoot_window() { local id; id=$(window "${2:-}"); [ -n "$id" ] && screencapture 
 at() { echo "1 + 2.4 + $1 * 0.4 + 1.2" | bc; }
 
 echo "Hero:"
-# The empty prompter, and the script as the prompter lays it out: the page scrolls one behind the other.
-run -SouffleurDemo notch -SouffleurDemoBlank YES -countdown NO; sleep 3.5; shoot_panel frame
+# The empty prompter, and the script as the prompter lays it out: the page scrolls one behind the other. Manual, with
+# the timer hidden, so its top row is as still as the page around it.
+run -SouffleurDemo notch -SouffleurDemoBlank YES -countdown NO -scrollMode manual -showsTimer NO; sleep 3.5; shoot_panel frame
 "$APP" -SouffleurSkipWelcome YES -declinedMoveToApplications YES -SouffleurDemoStrip "$PWD/$OUT/strip.png" -AppleLanguages '(en)' >/dev/null 2>&1 || true
 echo "  strip"
 
@@ -37,7 +38,8 @@ for light in violet ocean ember mint gold; do
 done
 run -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES -SouffleurDemoStop 16 -SouffleurDemoHover YES; sleep "$(at 16)"; shoot_panel controls
 run -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES; sleep 2.3; shoot_panel countdown
-run -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES; sleep 50; shoot_panel summary
+# The summary card shows once the take is over, about a minute in.
+run -SouffleurDemo notch -scrollMode voice -SouffleurDemoVoice YES; sleep 66; shoot_panel summary
 
 echo "Reel:"
 # A take filmed: the prompter window alone, laid on the desktop picture, for the website's video.
@@ -89,6 +91,8 @@ DESKTOP="${SOUFFLEUR_DESKTOP:-}"
 if [ -n "$DESKTOP" ]; then
   cwebp -quiet -q 84 -resize 1920 0 "$DESKTOP" -o site/assets/desktop.webp
   cwebp -quiet -q 86 -crop 0 0 3024 1200 "$DESKTOP" -o site/assets/desktop-top.webp
+  # Behind the prompter's cards: 700 x 300 points of the top of the screen, centred on the notch.
+  cwebp -quiet -q 84 -crop 812 0 1400 600 "$DESKTOP" -o site/assets/desktop-notch.webp
   # The README cannot lay captures on the desktop with CSS: it gets them composed.
   .build/compose "$DESKTOP" "$OUT/read-19.png" "$OUT/readme-notch.png" 560
   cwebp -quiet -q 88 "$OUT/readme-notch.png" -o docs/images/notch.webp

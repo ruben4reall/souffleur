@@ -64,7 +64,9 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
 }
 
 /* The navigation bar: the same as Pli's, black glass that stays at the top. */
-.nav { position: sticky; top: 0; z-index: 50; height: var(--nav-h); background: rgb(0 0 0 / .72); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid rgb(255 255 255 / .08); }
+.nav { position: sticky; top: 0; z-index: 50; height: var(--nav-h); background: rgb(0 0 0 / .72); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid transparent; transition: border-color .25s; }
+/* At the top of the page the bar is the top of the screen and the prompter hangs from it: no line between them. */
+.nav.is-scrolled { border-bottom-color: rgb(255 255 255 / .08); }
 .nav-inner { display: flex; align-items: center; gap: 28px; width: min(var(--max), 100% - var(--gutter) * 2); height: 100%; margin-inline: auto; }
 .nav-brand { display: flex; align-items: center; min-height: 32px; margin-right: auto; color: var(--white); font-size: 19px; font-weight: 600; letter-spacing: -.02em; text-decoration: none; }
 .nav-links { display: flex; gap: 2px; }
@@ -73,16 +75,21 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
 .nav-cta { padding: 4px 14px; border-radius: 980px; background: var(--white); color: var(--black); font-size: 13px; line-height: 20px; font-weight: 500; text-decoration: none; }
 .nav-cta:hover { background: #fff; }
 
-/* The prompter hangs from the bar, as it hangs from the notch: the real app, empty, with its script rolling. */
+/* The prompter hangs from the bar as it grows out of the notch: the real app, empty, the camera in its top row, with
+   its script rolling below it. */
 .hero-light { position: absolute; top: 0; left: 0; right: 0; height: 34px; background-image: linear-gradient(to bottom, var(--violet) -100%, transparent 100%); opacity: .25; pointer-events: none; }
-.prompter { position: absolute; top: 0; left: 50%; width: 453px; height: 180px; margin: 0 0 0 -226.5px; z-index: 2; transform-origin: top center; }
-.prompter-frame { width: 453px; height: 180px; }
+.prompter { position: absolute; top: 0; left: 50%; width: 498px; height: 190px; margin: 0 0 0 -249px; z-index: 2; transform-origin: top center; }
+.prompter-frame { width: 498px; height: 190px; }
+/* The camera, a dark glass lens in the middle of the prompter's top row. */
+.prompter-lens { position: absolute; top: 11px; left: 244px; width: 10px; height: 10px; border-radius: 50%;
+  background: radial-gradient(circle at 36% 34%, rgba(196, 165, 255, .75) 0 .8px, transparent 1.6px), radial-gradient(circle, #231c46 0 30%, #0d0b1a 62%, #040406 100%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .05), 0 0 6px rgba(124, 59, 255, .25); }
 /* The text area of the prompter, exactly where the app draws it, with the app's own fades. */
-.prompter-text { position: absolute; left: 46.5px; top: 22px; width: 360px; height: 134px; overflow: hidden;
+.prompter-text { position: absolute; left: 49px; top: 32px; width: 400px; height: 134px; overflow: hidden;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 52.5%, transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 52.5%, transparent 100%); }
 .prompter-track { animation: roll 48s linear infinite; will-change: transform; }
-.prompter-track img { width: 360px; height: auto; }
+.prompter-track img { width: 400px; height: auto; }
 @keyframes roll { to { transform: translateY(-50%); } }
 
 /* Hero */
@@ -190,10 +197,10 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
 .mock-window img { position: relative; border-radius: 12px; box-shadow: 0 10px 30px rgba(20, 0, 60, .5); }
 .mock-notch { aspect-ratio: 575 / 360; background: #0b0b0e; }
 .mock-desktop { position: absolute; top: 0; left: 50%; width: 168%; max-width: none; transform: translateX(-50%); }
-/* The prompter hangs 32 points below the top of the screen, under the notch: 32 of 1512 points, at 168% of the width. */
-.mock-prompter { position: absolute; top: 0; left: 50%; z-index: 2; width: 50.33%; margin-top: 3.556%; transform: translateX(-50%); }
-/* The MacBook's notch, 188 x 32 points, which a screenshot of the desktop never shows. */
-.mock-notch::before { content: ""; position: absolute; top: 0; left: 50%; z-index: 1; width: 20.89%; aspect-ratio: 188 / 32; transform: translateX(-50%); background: #000; border-radius: 0 0 6px 6px; }
+/* The prompter grows out of the top of the screen: 498 of the 900 points shown (1512 at 168%). */
+.mock-prompter { position: absolute; top: 0; left: 50%; z-index: 2; width: 55.33%; transform: translateX(-50%); }
+/* The MacBook's notch, 185 x 32 points, in front: a screenshot of the desktop never shows it. */
+.mock-notch::before, .more-screen::after { content: ""; position: absolute; top: 0; left: 50%; z-index: 3; width: 20.56%; aspect-ratio: 185 / 32; transform: translateX(-50%); background: #000; border-radius: 0 0 4.3% 4.3% / 0 0 25% 25%; }
 .features-info { display: flex; flex-direction: column; align-items: center; gap: 44px; }
 .features-text { margin: 0; font-size: 28px; font-weight: 500; line-height: 1.15; }
 .features-text strong { font-weight: 700; color: var(--violet); }
@@ -222,8 +229,13 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
 .more-copy h3 { margin: 0 0 8px; font-size: 22px; font-weight: 600; letter-spacing: -.01em; }
 .more-copy p { margin: 0; color: var(--gray-2); font-size: 16px; line-height: 1.45; }
 .more-shot { position: relative; display: flex; justify-content: center; align-items: flex-start; min-height: 190px; overflow: hidden; border-radius: 20px; background: radial-gradient(90% 80% at 50% 0%, rgba(124, 59, 255, .18), transparent 70%), #07070a; }
-.more-shot > img { width: 100%; max-width: 453px; height: auto; }
-.more-lights { aspect-ratio: 453 / 180; min-height: 0; }
+.more-shot > img { width: 100%; max-width: 498px; height: auto; }
+.more-lights { aspect-ratio: 498 / 190; min-height: 0; }
+/* The prompter where it lives: the top of a real Mac desktop around the notch, 700 points of it at the prompter's
+   scale (498 points), with the notch in front. */
+.more-screen { background: #0b0b0e url("../assets/desktop-notch.webp") 50% 0 / 140.56% auto no-repeat; }
+.more-screen > img { max-width: none; }
+.more-screen::after { width: 37.15%; }
 .more-fit { min-height: 0; align-items: flex-end; padding: 0; background: none; }
 .more-fit img { max-width: none; width: 100%; height: 190px; object-fit: cover; object-position: 50% 100%; border-radius: 16px; }
 .more-lights img { position: absolute; inset: 0; width: 100%; max-width: none; opacity: 0; transition: opacity .45s ease; }
