@@ -2,7 +2,9 @@
 
 Each release's section is what Souffleur's update window and the GitHub release show. Dates are in ISO format.
 
-## Unreleased
+## 1.3.1 (2026-09-28)
+
+The phone remote says what its play button does.
 
 - **Phone remote**: before a take, the phone says that its play button starts the selected script, and shows no time
   or percentage until one is open; the page no longer asks for an icon the Mac refuses.
