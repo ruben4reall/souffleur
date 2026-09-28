@@ -1,5 +1,5 @@
 // scripts/window-id.swift <owner> [panel|window|all]: prints the ids of an app's windows on screen, with their bounds.
-// "panel" is a window above the menu bar's level near the top of a screen (the notch prompter, hanging just below the
+// "panel" is a window above the menu bar's level near the top of a screen (the notch prompter, growing out of the
 // notch); "window" any other.
 import CoreGraphics
 

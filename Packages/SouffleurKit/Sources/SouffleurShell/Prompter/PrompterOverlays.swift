@@ -140,8 +140,35 @@ struct StatusRow: View {
     }
 }
 
+/// One side of the camera row of the notch prompter: the time left of the camera, the voice right of it.
+struct CameraWing: View {
+    enum Side { case time, voice }
+    let side: Side
+    let state: PrompterState
+    @AppStorage(Preferences.Key.showsTimer) private var showsTimer = true
+
+    var body: some View {
+        // A long take may outgrow its side: the time then keeps what has elapsed, the voice its meter.
+        ViewThatFits(in: .horizontal) {
+            label(compact: false)
+            label(compact: true)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: side == .time ? .leading : .trailing)
+        .padding(side == .time ? .leading : .trailing, 12)
+        .padding(side == .time ? .trailing : .leading, 6)
+    }
+
+    @ViewBuilder private func label(compact: Bool) -> some View {
+        switch side {
+        case .time: TimerLabel(state: state, compact: compact).opacity(showsTimer ? 1 : 0)
+        case .voice: LevelLabel(state: state, compact: compact)
+        }
+    }
+}
+
 struct TimerLabel: View {
     let state: PrompterState
+    var compact = false
     @AppStorage(Preferences.Key.stageLight) private var light = StageLight.violet.rawValue
 
     var body: some View {
@@ -151,8 +178,10 @@ struct TimerLabel: View {
                 .frame(width: 5, height: 5)
             Text(Pace.clock(state.elapsed))
                 .foregroundStyle(Color.white.opacity(0.9))
-            Text("−" + Pace.clock(state.remaining))
-                .foregroundStyle(Theme.tertiaryText)
+            if !compact {
+                Text("−" + Pace.clock(state.remaining))
+                    .foregroundStyle(Theme.tertiaryText)
+            }
         }
         .font(Theme.Font.figure)
         .fixedSize()
@@ -161,13 +190,14 @@ struct TimerLabel: View {
 
 struct LevelLabel: View {
     let state: PrompterState
+    var compact = false
 
     var body: some View {
         HStack(spacing: 6) {
             if state.mode.listens {
                 LevelMeter(level: state.isRolling ? state.level : 0, speaking: state.isSpeaking && state.isRolling)
             }
-            if let pace = state.mode == .voice ? state.measuredPace : state.wordsPerMinute, state.mode != .manual {
+            if let pace = state.mode == .voice ? state.measuredPace : state.wordsPerMinute, state.mode != .manual, !compact || !state.mode.listens {
                 Text("\(Int(pace.rounded())) wpm")
                     .font(Theme.Font.figure)
                     .foregroundStyle(Theme.tertiaryText)

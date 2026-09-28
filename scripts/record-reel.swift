@@ -4,10 +4,10 @@ import CoreImage
 import ScreenCaptureKit
 
 // scripts/record-reel.swift: films one window of Souffleur (the prompter) with ScreenCaptureKit, lays each frame on a
-// real desktop picture with the notch, and writes the H.264 video of the website's "See it in action". Only the
+// real desktop picture under the notch, and writes the H.264 video of the website's "See it in action". Only the
 // prompter window is captured, never anything else on the screen. ScreenCaptureKit trims a window's transparent edges
 // and puts what is left in the corner of the frame: that content is cut out and put back where the window is on
-// screen, so the prompter keeps its exact place under the notch. scripts/capture-site.sh runs it.
+// screen, so the prompter keeps its exact place around the notch. scripts/capture-site.sh runs it.
 // usage: record-reel <window-id> <desktop.png (3024 wide, a MacBook Pro 14 screen)> <out.mp4> <seconds> [poster.png]
 // The poster is the frame six seconds in.
 setvbuf(stdout, nil, _IONBF, 0)
@@ -29,9 +29,9 @@ let desktopCrop = desktop
     .transformed(by: CGAffineTransform(translationX: -(screenWidth - region.width) / 2 * 2, y: -(desktop.extent.height - region.height * 2)))
     .transformed(by: CGAffineTransform(scaleX: scale / 2, y: scale / 2))
 let context = CIContext()
-// The MacBook's notch, the black camera housing a screenshot never shows: 188 x 32 points at the top centre, its
-// lower corners rounded. The prompter hangs from it.
-let notchSize = CGSize(width: 188 * scale, height: 32 * scale)
+// The MacBook's notch, the black camera housing a screenshot never shows: 185 x 32 points at the top centre (what
+// macOS reports on a 14-inch MacBook Pro), its lower corners rounded. The prompter grows out of it.
+let notchSize = CGSize(width: 185 * scale, height: 32 * scale)
 let notchContext = CGContext(data: nil, width: Int(notchSize.width), height: Int(notchSize.height), bitsPerComponent: 8, bytesPerRow: 0,
                              space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
 let notchRadius = 8 * scale
@@ -48,7 +48,6 @@ notchContext.setFillColor(CGColor(gray: 0, alpha: 1))
 notchContext.fillPath()
 let notch = CIImage(cgImage: notchContext.makeImage()!)
     .transformed(by: CGAffineTransform(translationX: (size.width - notchSize.width) / 2, y: size.height - notchSize.height))
-let screenTop = notch.composited(over: desktopCrop)
 
 final class Recorder: NSObject, SCStreamOutput, @unchecked Sendable {
     let writer: AVAssetWriter
@@ -142,7 +141,8 @@ Task {
             let scaled = cut.transformed(by: CGAffineTransform(scaleX: scale / factor, y: scale / factor))
             let x = (windowFrame.midX - cropLeft) * scale - content.width * scale / 2
             let y = size.height - (windowFrame.minY + content.height) * scale
-            return scaled.transformed(by: CGAffineTransform(translationX: x, y: y)).composited(over: screenTop)
+            // The notch stays in front, as the camera housing does.
+            return notch.composited(over: scaled.transformed(by: CGAffineTransform(translationX: x, y: y)).composited(over: desktopCrop))
         }
         let recorder = try Recorder(out: out, size: size, context: context, poster: posterURL, place: place)
         let stream = SCStream(filter: filter, configuration: config, delegate: nil)
