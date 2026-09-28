@@ -10,7 +10,7 @@ public final class RemoteServer {
     public private(set) var isRunning = false
     public var onCommand: ((RemoteCommand) -> Void)?
     /// The state to send to the phones.
-    public var state: () -> RemoteState = { RemoteState(title: "", isRolling: false, progress: 0, wordsPerMinute: 0, line: "", remaining: 0) }
+    public var state: () -> RemoteState = { .idle() }
     public var onStatusChange: (() -> Void)?
 
     private var listener: NWListener?

@@ -40,7 +40,7 @@ public final class Souffleur {
         hotKeys = HotKeys()
         prompter.onChange = { [weak self] in self?.prompterChanged() }
         remote.onCommand = { [weak self] command in self?.perform(command) }
-        remote.state = { [weak self] in self?.remoteState() ?? RemoteState(title: "", isRolling: false, progress: 0, wordsPerMinute: 0, line: "", remaining: 0) }
+        remote.state = { [weak self] in self?.remoteState() ?? .idle() }
         remote.onStatusChange = { [weak self] in self?.remoteRevision += 1 }
         applyPreferences()
         defaultsObserver = NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
@@ -168,7 +168,7 @@ public final class Souffleur {
     private func remoteState() -> RemoteState {
         let state = prompter.state
         guard prompter.isActive else {
-            return RemoteState(title: store.selected?.title ?? "", isRolling: false, progress: 0, wordsPerMinute: 0, line: "", remaining: 0)
+            return .idle(title: store.selected?.title ?? "")
         }
         let pace = state.mode == .voice ? (state.measuredPace ?? 0) : state.wordsPerMinute
         return RemoteState(title: state.title, isRolling: state.isRolling, progress: state.progress, wordsPerMinute: pace, line: prompter.currentLine, remaining: state.remaining)

@@ -7,7 +7,10 @@ public enum RemoteCommand: String, CaseIterable, Codable, Sendable {
 
 /// What the phone remote shows, sent as JSON each time it changes.
 public struct RemoteState: Codable, Equatable, Sendable {
+    /// The open script, or the one selected in the library when nothing is open.
     public var title: String
+    /// A take is open on the Mac, rolling or paused.
+    public var isActive: Bool
     public var isRolling: Bool
     /// From 0 to 1.
     public var progress: Double
@@ -17,13 +20,19 @@ public struct RemoteState: Codable, Equatable, Sendable {
     /// Seconds left at the current pace.
     public var remaining: TimeInterval
 
-    public init(title: String, isRolling: Bool, progress: Double, wordsPerMinute: Double, line: String, remaining: TimeInterval) {
+    public init(title: String, isActive: Bool = true, isRolling: Bool, progress: Double, wordsPerMinute: Double, line: String, remaining: TimeInterval) {
         self.title = title
+        self.isActive = isActive
         self.isRolling = isRolling
         self.progress = progress
         self.wordsPerMinute = wordsPerMinute
         self.line = line
         self.remaining = remaining
+    }
+
+    /// Nothing open on the Mac: the phone shows the selected script and what its play button does.
+    public static func idle(title: String = "") -> RemoteState {
+        RemoteState(title: title, isActive: false, isRolling: false, progress: 0, wordsPerMinute: 0, line: "", remaining: 0)
     }
 }
 
