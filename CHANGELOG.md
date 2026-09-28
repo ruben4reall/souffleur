@@ -2,7 +2,7 @@
 
 Each release's section is what Souffleur's update window and the GitHub release show. Dates are in ISO format.
 
-## Unreleased
+## 1.3.0 (2026-09-28)
 
 The prompter grows out of the notch again, as the classic notch prompters do: its ears meet the top edge of the
 screen and the camera sits in its black, with the time on one side and your voice on the other.
