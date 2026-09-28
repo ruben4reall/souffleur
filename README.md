@@ -40,9 +40,9 @@ a phone remote, clicker support, a full screen mirror for rigs and a coach after
   are heard right.
 - **Four ways to scroll.** Voice Pace (rolls while you speak, the default), Voice Follow, Auto Scroll (a steady pace
   in words per minute) and Manual.
-- **Three places.** Right below the notch, leaving the menu bar free, with the time and your voice in a band at its top
-  and a violet light inside; floating anywhere, in glass; or full screen on any display, mirrored for a teleprompter
-  rig.
+- **Three places.** In the notch, growing out of the camera housing with the time on one side of the camera and your
+  voice on the other, and a violet light inside; floating anywhere, in glass; or full screen on any display, mirrored
+  for a teleprompter rig.
 - **Hands free.** Global shortcuts, presentation clickers and foot pedals (Page Up and Page Down), a phone remote over
   your local network, `souffleur://` links and Shortcuts actions.
 - **Scripts.** A library of plain Markdown files, light markup (`# headings`, `[cues]`, `**emphasis**`), and import from
@@ -114,9 +114,9 @@ and never waited for; `**words**` are emphasised.
 
 ## Other notch apps
 
-Souffleur hangs just below the notch and never covers the menu bar, so whatever Islet, NotchNook or boring.notch show
-beside the camera stays where it is. While the prompter is open it stays in front of their expanded views; they come
-back as soon as it closes. An app that wants to step aside can listen for two distributed notifications,
+While you read, the prompter has the notch to itself: it grows out of the camera housing in front of whatever Islet,
+NotchNook or boring.notch show there, and they come back the moment it closes. An app that wants to step aside can
+listen for two distributed notifications,
 `ch.rubencatalao.souffleur.prompterDidOpen` (its user info gives the `placement`: `notch`, `floating` or `fullScreen`)
 and `ch.rubencatalao.souffleur.prompterDidClose`.
 
@@ -141,8 +141,8 @@ camera pointed at it. To show the prompter in a tutorial, turn this off in Setti
 
 - macOS 14 Sonoma or later, Apple silicon and Intel.
 - **In the notch** on MacBook Pro 14 and 16 inch (2021 and later) and MacBook Air 13 and 15 inch (M2 and later).
-- **Everywhere else**, the prompter hangs from the middle of the menu bar, floats wherever you put it, or fills a
-  display.
+- **Everywhere else**, the prompter drops from the top of the screen over the middle of the menu bar, floats wherever
+  you put it, or fills a display.
 - Voice follow uses SpeechAnalyzer on macOS 26 when its model for your language is on the Mac, and on-device
   SFSpeechRecognizer otherwise. It needs the language's offline model, which macOS downloads when you add the
   language to Dictation (System Settings, Keyboard). Voice Pace works in every language.

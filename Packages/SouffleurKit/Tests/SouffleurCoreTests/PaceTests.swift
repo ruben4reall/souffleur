@@ -114,23 +114,37 @@ struct NotchGeometryTests {
         #expect(notch == NotchMetrics(width: 180, height: 25, centerX: 1280, isHardware: false))
     }
 
-    @Test func thePrompterHangsBelowTheNotchLeavingTheMenuBarFree() {
+    @Test func thePrompterGrowsOutOfTheNotch() {
         let notch = NotchMetrics(width: 188, height: 32, centerX: 756, isHardware: true)
         let layout = PrompterLayout(notch: notch, width: 520, textHeight: 150)
+        // Closed, it is the camera housing itself; open, it drops from the top of the screen around it.
+        let closed = layout.shape(open: false)
+        #expect(closed.width == 188 && closed.height == 32)
         let open = layout.shape(open: true)
-        // It hangs from the notch's lower edge: nothing of it covers the menu bar beside the camera.
-        #expect(layout.hangY == 32)
-        #expect(layout.shape(open: false).width == 188)
-        #expect(open.width == 520 && open.height == PrompterLayout.statusHeight + 150)
-        // The timer and the voice sit in a band at its top, the text below it.
-        #expect(layout.statusFrame.minY == 0 && layout.statusFrame.height == PrompterLayout.statusHeight)
-        #expect(layout.textFrame.minY == PrompterLayout.statusHeight)
+        #expect(open.width == 520 && open.height == 32 + 150)
+        #expect(layout.bodyFrame.minY == 0)
+        // The text starts right under the camera.
+        #expect(layout.textFrame.minY == 32 && layout.textFrame.height == 150)
         #expect(layout.textFrame.width == 520)
     }
 
-    @Test func thePrompterStaysWiderThanTheNotch() {
+    @Test func theTimeAndTheVoiceSitEitherSideOfTheCamera() {
         let notch = NotchMetrics(width: 188, height: 32, centerX: 756, isHardware: true)
-        #expect(PrompterLayout(notch: notch, width: 200, textHeight: 100).shape(open: true).width >= 248)
+        let layout = PrompterLayout(notch: notch, width: 520, textHeight: 150)
+        let wings = layout.wingFrames
+        #expect(wings.left.minX == layout.bodyFrame.minX && wings.right.maxX == layout.bodyFrame.maxX)
+        #expect(wings.left.minY == 0 && wings.left.height == 32 && wings.right.height == 32)
+        // Nothing is drawn under the camera: the wings stop at its edges.
+        #expect(wings.right.minX - wings.left.maxX == 188)
+        #expect(abs(wings.left.maxX - (layout.canvasSize.width / 2 - 94)) < 0.01)
+    }
+
+    @Test func thePrompterLeavesRoomBesideTheCamera() {
+        let notch = NotchMetrics(width: 188, height: 32, centerX: 756, isHardware: true)
+        let layout = PrompterLayout(notch: notch, width: 200, textHeight: 100)
+        // Enough for the time on one side ("● 0:06 −0:51") and the voice on the other, with room to spare.
+        #expect(layout.shape(open: true).width >= 188 + 190)
+        #expect(layout.wingFrames.left.width >= 95 && layout.wingFrames.right.width >= 95)
     }
 
     @Test func theOpenPrompterKeepsTheClassicProportions() {
@@ -139,16 +153,20 @@ struct NotchGeometryTests {
         // Ears of 25 points and lower corners of 13 on a prompter 400 points wide, in proportion at any width.
         #expect(abs(open.earRadius - 25) < 0.01)
         #expect(abs(open.cornerRadius - 13) < 0.01)
-        let narrow = PrompterLayout(notch: notch, width: 360, textHeight: 136).shape(open: true)
-        #expect(abs(narrow.earRadius - 22.5) < 0.01)
+        let wide = PrompterLayout(notch: notch, width: 480, textHeight: 136).shape(open: true)
+        #expect(abs(wide.earRadius - 30) < 0.01)
     }
 
-    @Test func withoutANotchThePrompterHangsFromTheMenuBar() {
+    @Test func withoutANotchThePrompterStillDropsFromTheTopOfTheScreen() {
         let notch = NotchMetrics(width: 180, height: 25, centerX: 1280, isHardware: false)
         let layout = PrompterLayout(notch: notch, width: 520, textHeight: 150)
-        #expect(layout.hangY == 25)
+        // The menu bar's height makes the camera row; the text starts below it.
+        #expect(layout.bodyFrame.minY == 0)
+        #expect(layout.shape(open: true).height == CGFloat(25 + 150))
         #expect(layout.shape(open: true).earRadius > 0)
-        #expect(layout.textFrame.minY == PrompterLayout.statusHeight)
+        #expect(layout.textFrame.minY == 25)
+        // Closed, a sliver at the top edge, as wide as the space kept for the camera.
+        #expect(layout.shape(open: false).width == 180 && layout.shape(open: false).height < 10)
     }
 
     @Test func theOutlineIsClosedCentredAndHangsFromItsTopEdge() {

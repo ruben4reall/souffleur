@@ -2,10 +2,9 @@ import AppKit
 import SouffleurCore
 import SwiftUI
 
-/// The prompter hanging from the notch: it drops from under the camera housing with a spring, right below the menu
-/// bar, whose items and whatever other apps show beside the camera stay free. A band at its top shows the time on the
-/// left and the voice on the right; stage light rises inside it from its lower edge, and a halo of the same colour lies
-/// beneath it.
+/// The prompter growing out of the notch: it drops from the top of the screen around the camera housing with a
+/// spring, the time on the camera's left and the voice on its right, the text right under it. Stage light rises
+/// inside it from its lower edge, and a halo of the same colour lies beneath it.
 @MainActor
 final class NotchPresentation: PrompterPresentation {
     let text = ScriptTextView()
@@ -17,7 +16,7 @@ final class NotchPresentation: PrompterPresentation {
     private let content = NSView()
     private let mask = CAShapeLayer()
     private var overlay: PassthroughHostingView<PrompterOverlay>?
-    private var statusRow: NSHostingView<AnyView>?
+    private var wings: [NSView] = []
     private var layout: PrompterLayout?
     private var isOpen = false
     private var haloOpacity: Float = 0.25
@@ -62,7 +61,7 @@ final class NotchPresentation: PrompterPresentation {
         let size = layout.canvasSize
         panel.setFrame(NSRect(
             x: (screen.frame.minX + notch.centerX - size.width / 2).rounded(),
-            y: screen.frame.maxY - layout.hangY - size.height,
+            y: screen.frame.maxY - size.height,
             width: size.width, height: size.height
         ), display: false)
         let bounds = NSRect(origin: .zero, size: size)
@@ -111,12 +110,15 @@ final class NotchPresentation: PrompterPresentation {
         }
         content.addSubview(overlay)
         self.overlay = overlay
-        statusRow?.removeFromSuperview()
-        let row = NSHostingView(rootView: AnyView(StatusRow(state: state).padding(.horizontal, 16).padding(.top, 2)))
-        row.sizingOptions = []
-        row.frame = flipped(layout.statusFrame, in: size)
-        content.addSubview(row)
-        statusRow = row
+        wings.forEach { $0.removeFromSuperview() }
+        let frames = layout.wingFrames
+        wings = [(CameraWing.Side.time, frames.left), (.voice, frames.right)].map { side, frame in
+            let wing = NSHostingView(rootView: CameraWing(side: side, state: state))
+            wing.sizingOptions = []
+            wing.frame = flipped(frame, in: size)
+            content.addSubview(wing)
+            return wing
+        }
     }
 
     func present() {

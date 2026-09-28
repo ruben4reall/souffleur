@@ -39,8 +39,8 @@ public struct NotchMetrics: Equatable, Sendable {
     }
 }
 
-/// The prompter's outline: a body hanging from a straight top edge, with concave ears where it meets what it hangs
-/// from and rounded lower corners.
+/// The prompter's outline: a body hanging from the top edge of the screen, with concave ears where it meets it and
+/// rounded lower corners.
 public struct PrompterShape: Equatable, Sendable {
     /// Width of the body, ears excluded.
     public var width: CGFloat
@@ -60,18 +60,19 @@ public struct PrompterShape: Equatable, Sendable {
 }
 
 /// Every size the notch prompter takes on one screen, in a top-left canvas big enough for all of them. The canvas
-/// starts at the prompter's top edge, which hangs `hangY` points below the top of the screen.
+/// starts at the top of the screen: the prompter grows out of the camera housing, and on a screen without a notch it
+/// drops from the same place, over the middle of the menu bar.
 public struct PrompterLayout: Equatable, Sendable {
     public let notch: NotchMetrics
     /// Width of the open prompter.
     public let width: CGFloat
-    /// Height of the text area.
+    /// Height of the text area below the camera.
     public let textHeight: CGFloat
 
-    /// The band at the top of the prompter that holds the timer and the voice.
-    public static let statusHeight: CGFloat = 22
     /// Room around the open prompter for the halo of light beneath it.
     static let shadowMargin: CGFloat = 24
+    /// Room left and right of the camera for the timer and the voice.
+    static let wingMinimum: CGFloat = 95
     /// The classic notch prompter's proportions: ears of 25 points and lower corners of 13 on a body 400 points wide.
     static let earRatio: CGFloat = 25 / 400
     static let cornerRatio: CGFloat = 13 / 400
@@ -82,16 +83,16 @@ public struct PrompterLayout: Equatable, Sendable {
         self.textHeight = textHeight
     }
 
-    /// Where the prompter hangs, in points below the top of the screen: from the notch's lower edge, or from the
-    /// menu bar on a screen without one. The menu bar stays free: its items, and whatever other apps show beside
-    /// the camera, are never covered.
-    public var hangY: CGFloat { notch.height }
-
-    /// Closed, a sliver under the notch; open, the prompter, always a little wider than the notch.
+    /// Closed, the camera housing itself (a sliver at the top edge without a notch); open, the prompter around it,
+    /// with a row as tall as the notch or the menu bar above the text.
     public func shape(open: Bool) -> PrompterShape {
-        guard open else { return PrompterShape(width: notch.width, height: 6, earRadius: 2, cornerRadius: 3) }
-        let body = max(width, notch.width + 60)
-        return PrompterShape(width: body, height: Self.statusHeight + textHeight, earRadius: body * Self.earRatio, cornerRadius: body * Self.cornerRatio)
+        guard open else {
+            return notch.isHardware
+                ? PrompterShape(width: notch.width, height: notch.height, earRadius: 4, cornerRadius: 9)
+                : PrompterShape(width: notch.width, height: 6, earRadius: 2, cornerRadius: 3)
+        }
+        let body = max(width, notch.width + Self.wingMinimum * 2)
+        return PrompterShape(width: body, height: notch.height + textHeight, earRadius: body * Self.earRatio, cornerRadius: body * Self.cornerRatio)
     }
 
     public var canvasSize: CGSize {
@@ -105,14 +106,17 @@ public struct PrompterLayout: Equatable, Sendable {
         return CGRect(x: (canvasSize.width - open.width) / 2, y: 0, width: open.width, height: open.height)
     }
 
-    /// The band for the timer and the voice, at the top of the body.
-    public var statusFrame: CGRect {
-        CGRect(x: bodyFrame.minX, y: 0, width: bodyFrame.width, height: Self.statusHeight)
+    /// The camera row, left and right of the notch: the timer on one side, the voice on the other.
+    public var wingFrames: (left: CGRect, right: CGRect) {
+        let body = bodyFrame
+        let side = (body.width - notch.width) / 2
+        return (CGRect(x: body.minX, y: 0, width: side, height: notch.height),
+                CGRect(x: body.maxX - side, y: 0, width: side, height: notch.height))
     }
 
-    /// The text area, below the band.
+    /// The text area, right under the camera.
     public var textFrame: CGRect {
-        CGRect(x: bodyFrame.minX, y: Self.statusHeight, width: bodyFrame.width, height: textHeight)
+        CGRect(x: bodyFrame.minX, y: notch.height, width: bodyFrame.width, height: textHeight)
     }
 }
 

@@ -206,7 +206,7 @@ public enum Preferences {
         Key.font: PrompterFont.system.rawValue,
         Key.lineSpacing: 1.4,
         Key.theme: PrompterTheme.night.rawValue,
-        Key.notchWidth: 360.0,
+        Key.notchWidth: 400.0,
         Key.notchLines: 4.0,
         Key.floatingWidth: 520.0,
         Key.floatingHeight: 200.0,

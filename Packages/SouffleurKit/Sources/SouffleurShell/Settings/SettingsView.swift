@@ -71,7 +71,7 @@ private struct GeneralPane: View {
 private struct PrompterPane: View {
     let app: Souffleur
     @AppStorage(Preferences.Key.placement) private var placement = PrompterPlacement.notch.rawValue
-    @AppStorage(Preferences.Key.notchWidth) private var notchWidth = 360.0
+    @AppStorage(Preferences.Key.notchWidth) private var notchWidth = 400.0
     @AppStorage(Preferences.Key.notchLines) private var notchLines = 4.0
     @AppStorage(Preferences.Key.floatingWidth) private var floatingWidth = 520.0
     @AppStorage(Preferences.Key.floatingHeight) private var floatingHeight = 200.0
@@ -115,7 +115,7 @@ private struct PrompterPane: View {
                 .pickerStyle(.segmented)
                 switch PrompterPlacement(rawValue: placement) ?? .notch {
                 case .notch:
-                    slider(String(localized: "Width", bundle: .module), value: $notchWidth, in: 340...760, step: 10, unit: "pt")
+                    slider(String(localized: "Width", bundle: .module), value: $notchWidth, in: 380...760, step: 10, unit: "pt")
                     Stepper(value: $notchLines, in: 2...8) {
                         LabeledContent(String(localized: "Lines", bundle: .module), value: "\(Int(notchLines))")
                     }

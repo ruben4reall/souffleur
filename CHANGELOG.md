@@ -2,6 +2,20 @@
 
 Each release's section is what Souffleur's update window and the GitHub release show. Dates are in ISO format.
 
+## Unreleased
+
+The prompter grows out of the notch again, as the classic notch prompters do: its ears meet the top edge of the
+screen and the camera sits in its black, with the time on one side and your voice on the other.
+
+- **In the notch**: the prompter drops from the top of the screen around the camera housing instead of hanging below
+  it, so it is one with the notch on any wallpaper, and the text starts right under the camera.
+- **Beside the camera**: the time on its left, the voice and the pace on its right, where the band at the top used to
+  be. A long take keeps the essentials when they no longer fit.
+- **400 points wide** by default, like the classic notch prompter; the width setting now starts at 380.
+- **Without a notch**, the prompter drops from the top edge too, over the middle of the menu bar.
+- **Other notch apps**: while you read, the prompter is in front of what they show around the camera, and they come
+  back the moment it closes. The two notifications Souffleur posts are unchanged.
+
 ## 1.2.0 (2026-09-27)
 
 The prompter now hangs just below the notch and leaves the menu bar free, and every feature went through a full review.
