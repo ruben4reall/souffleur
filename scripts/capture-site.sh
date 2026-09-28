@@ -97,4 +97,7 @@ if [ -n "$DESKTOP" ]; then
   .build/compose "$DESKTOP" "$OUT/read-19.png" "$OUT/readme-notch.png" 560
   cwebp -quiet -q 88 "$OUT/readme-notch.png" -o docs/images/notch.webp
 fi
-echo "Done: site/assets/{notch,app}, docs/images"
+# New pictures under old names: the pages ask for them with the version, so no browser keeps yesterday's for a day.
+VERSION=$(grep -m1 'MARKETING_VERSION:' project.yml | awk '{print $2}' | tr -d '"' | cut -d. -f1,2)
+sed -i '' "s/?v=[0-9.]*\"/?v=$VERSION\"/g" site/index.html site/404.html
+echo "Done: site/assets/{notch,app}, docs/images, asset URLs at ?v=$VERSION"
