@@ -88,7 +88,7 @@ code { font-family: var(--mono); font-size: .88em; background: rgba(255, 255, 25
 .prompter-text { position: absolute; left: 49px; top: 32px; width: 400px; height: 134px; overflow: hidden;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 52.5%, transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 52.5%, transparent 100%); }
-.prompter-track { animation: roll 48s linear infinite; will-change: transform; }
+.prompter-track { animation: roll 43s linear infinite; will-change: transform; }
 .prompter-track img { width: 400px; height: auto; }
 @keyframes roll { to { transform: translateY(-50%); } }
 
