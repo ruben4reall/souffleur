@@ -1,6 +1,13 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/((?!appcast\\.xml).*)",
+      "destination": "https://getcol.vercel.app/#prompter",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
