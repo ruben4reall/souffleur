@@ -12,6 +12,13 @@
 
 # Souffleur
 
+> [!IMPORTANT]
+> **Souffleur is now part of [Col](https://github.com/ruben4reall/col).** Col 2.0 brings the same prompter out of
+> the notch, with the rest of the island around it: install Col and your scripts and settings carry over, and
+> `souffleur://` links keep working. This repository is archived and no longer receives updates.
+>
+> [Get Col](https://getcol.vercel.app) · [Download Col for Mac](https://github.com/ruben4reall/col/releases/latest/download/Col.dmg)
+
 **Your lines, right under the camera.**
 
 [Website](https://getsouffleur.vercel.app) · [Download for Mac](https://github.com/ruben4reall/souffleur/releases/latest/download/Souffleur.dmg) · [Changelog](CHANGELOG.md)
